@@ -1,4 +1,5 @@
 apply plugin: 'java'
+apply plugin: 'application'
 
 version = '1.0'
 
@@ -7,4 +8,14 @@ repositories {
 }
 
 dependencies {
+    compile group: 'com.google.inject', name: 'guice', version: '4.2.0'
+
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.4'
+    compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-parameter-names', version: '2.9.4'
+}
+
+mainClassName = "com.scr.journal.Main"
+
+compileJava {
+    options.compilerArgs += ["-parameters"]
 }
