@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class JournalController {
 
@@ -213,6 +214,14 @@ public class JournalController {
         reasonTextField.clear();
         addressTextField.clear();
         categoryComboBox.getSelectionModel().clearSelection();
+        categoryComboBox.setItems(
+                FXCollections.observableList(
+                        journals.stream()
+                                .map(Journal::getExpenseType)
+                                .distinct()
+                                .sorted()
+                                .collect(Collectors.toList()))
+        );
         categoryComboBox.setValue(null);
     }
 
