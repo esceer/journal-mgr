@@ -12,7 +12,9 @@ public class DateUtil {
     }
 
     public static String toString(LocalDate date) {
-        return date.format(dateFormatter);
+        return date != null
+                ? date.format(dateFormatter)
+                : null;
     }
 
 }

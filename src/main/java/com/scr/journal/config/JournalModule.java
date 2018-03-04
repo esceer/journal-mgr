@@ -22,20 +22,29 @@ public class JournalModule extends AbstractModule {
     }
 
     @Provides
+    @Named("json_file_path")
     public Path createJsonFilePath(@Named("json.file.path") String jsonFilePath) {
         return Paths.get(jsonFilePath);
     }
 
     @Provides
+    @Named("backup_file_path")
+    public Path createBackupFilePath(@Named("backup.file.path") String jsonFilePath) {
+        return Paths.get(jsonFilePath);
+    }
+
+    @Provides
     @Singleton
-    public DataLoader<Journals> createJournalLoader(Path filePath) {
+    public DataLoader<Journals> createJournalLoader(@Named("json_file_path")Path filePath) {
         return new JsonLoader<>(filePath, Journals.class);
     }
 
     @Provides
     @Singleton
-    public DataPersister<Journals> createJournalPersister(Path filePath) {
-        return new JsonPersister<>(filePath);
+    public DataPersister<Journals> createJournalPersister(
+            @Named("json_file_path") Path filePath,
+            @Named("backup_file_path") Path backupPath) {
+        return new JsonPersister<>(filePath, backupPath);
     }
 
     @Provides

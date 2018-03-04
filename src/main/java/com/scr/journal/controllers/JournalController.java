@@ -14,11 +14,18 @@ import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.util.Objects;
 
 public class JournalController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JournalController.class);
+
+    @FXML
+    private Label infoLabel;
 
     @FXML
     private DatePicker datePicker;
@@ -67,6 +74,11 @@ public class JournalController {
                 amountTextField.setText(oldValue);
             }
         });
+
+        Thread.setDefaultUncaughtExceptionHandler((thread, cause) -> {
+            LOGGER.error("Exception on thread: " + thread.getName(), cause);
+            infoLabel.setText("Exception: " + ValidationUtil.getRootCause(cause).getMessage());
+        });
     }
 
     @FXML
@@ -76,15 +88,25 @@ public class JournalController {
         journalPersister.persist(Journals.from(journals));
 
         resetControls();
+
+        infoLabel.setText("New journal created");
     }
 
     @FXML
     protected void handleDeleteClicked(ActionEvent event) {
-        // Todo: Implement
+        int selectedIndex = journalTableView.getSelectionModel().getSelectedIndex();
+        if (selectedIndex >= 0) {
+            journals.remove(selectedIndex);
+            journalPersister.persist(Journals.from(journals));
+            infoLabel.setText("Deleted journal");
+        } else {
+            throw new IllegalArgumentException("Failed to delete journal as no journal was selected");
+        }
     }
 
     @FXML
     protected void handleSearchClicked(ActionEvent event) {
+        infoLabel.setText("Filtering journals...");
         FilteredList<Journal> filteredJournals = new FilteredList<>(FXCollections.observableArrayList(journals));
 
         LocalDate date = datePicker.getValue();
@@ -132,18 +154,21 @@ public class JournalController {
         }
 
         journalTableView.setItems(FXCollections.observableArrayList(filteredJournals));
+        infoLabel.setText("Filtering journals... Finished");
     }
 
     @FXML
     protected void handleResetClicked(ActionEvent event) {
         resetControls();
+        infoLabel.setText(null);
     }
 
     private Journal createJournal() {
         String date = DateUtil.toString(datePicker.getValue());
         PaymentType paymentType = paymentTypeComboBox.getValue();
-        PaymentDirection paymentDirection = PaymentDirection.tryParse(
-                Objects.toString(paymentDirectionGroup.getSelectedToggle().getUserData()));
+        PaymentDirection paymentDirection = paymentDirectionGroup.getSelectedToggle() != null
+                ? PaymentDirection.tryParse(Objects.toString(paymentDirectionGroup.getSelectedToggle().getUserData()))
+                : null;
         String invoiceNumber = invoiceNumberTextField.getText();
         long amount = Long.parseLong(amountTextField.getText());
         String reason = reasonTextField.getText();

@@ -29,6 +29,13 @@ public final class ValidationUtil {
         return false;
     }
 
+    public static Throwable getRootCause(Throwable exception) {
+        while (exception.getCause() != null) {
+            exception = exception.getCause();
+        }
+        return exception;
+    }
+
     private ValidationUtil() {
         throw new UnsupportedOperationException();
     }
