@@ -1,5 +1,6 @@
 package com.scr.journal.controllers;
 
+import com.scr.journal.dao.CsvLoader;
 import com.scr.journal.dao.ExcelWriter;
 import com.scr.journal.model.Journal;
 import com.scr.journal.model.Journals;
@@ -19,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -40,14 +40,16 @@ public class JournalController {
     @FXML private ComboBox<String> categoryComboBox;
     @FXML private TableView<Journal> journalTableView;
 
-    private final ExcelWriter excelWriter;
     private final JournalRegistry journalRegistry;
+    private final CsvLoader csvLoader;
+    private final ExcelWriter excelWriter;
 
     private ObservableList<Journal> observableJournals;
 
-    public JournalController(JournalRegistry journalRegistry, ExcelWriter excelWriter) {
-        this.excelWriter = excelWriter;
+    public JournalController(JournalRegistry journalRegistry, CsvLoader csvLoader, ExcelWriter excelWriter) {
         this.journalRegistry = journalRegistry;
+        this.csvLoader = csvLoader;
+        this.excelWriter = excelWriter;
     }
 
     @FXML
@@ -96,6 +98,7 @@ public class JournalController {
     @FXML
     protected void handleSearchClicked(ActionEvent event) {
         infoLabel.setText("Filtering journals...");
+        reloadJournals();
         filterJournals();
         infoLabel.setText("Filtering journals... Finished");
     }
@@ -112,7 +115,19 @@ public class JournalController {
         fileChooser.setTitle("Save file");
         fileChooser.setInitialFileName(DEFAULT_EXPORTED_EXCEL_FILE_NAME);
         File exportFilePath = fileChooser.showSaveDialog(null);
-        excelWriter.save(Paths.get(exportFilePath.getPath()), Journals.from(observableJournals));
+        excelWriter.save(exportFilePath.getPath(), Journals.from(observableJournals));
+    }
+
+    @FXML
+    protected void handleImport(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Load file");
+        File importFilePath = fileChooser.showOpenDialog(null);
+
+        Journals journals = csvLoader.load(importFilePath.getPath());
+        journalRegistry.add(journals.getJournals());
+
+        resetControls();
     }
 
     private void filterJournals() {

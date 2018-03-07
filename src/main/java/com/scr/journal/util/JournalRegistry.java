@@ -5,6 +5,7 @@ import com.scr.journal.dao.DataPersister;
 import com.scr.journal.model.Journal;
 import com.scr.journal.model.Journals;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -12,12 +13,10 @@ public class JournalRegistry {
 
     private final Collection<Journal> journals;
 
-    private final DataLoader<Journals> journalLoader;
     private final DataPersister<Journals> journalPersister;
 
     public JournalRegistry(DataLoader<Journals> journalLoader, DataPersister<Journals> journalPersister) {
         this.journals = journalLoader.load().getJournals();
-        this.journalLoader = journalLoader;
         this.journalPersister = journalPersister;
     }
 
@@ -26,7 +25,13 @@ public class JournalRegistry {
     }
 
     public void add(Journal journal) {
-        journals.add(journal);
+        add(Arrays.asList(journal));
+    }
+
+    public void add(Collection<Journal> journalsToAdd) {
+        for (Journal journal : journalsToAdd) {
+            journals.add(journal);
+        }
         persist();
     }
 

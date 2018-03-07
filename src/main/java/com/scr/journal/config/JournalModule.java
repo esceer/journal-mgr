@@ -5,6 +5,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.scr.journal.controllers.JournalController;
+import com.scr.journal.dao.CsvLoader;
 import com.scr.journal.dao.ExcelWriter;
 import com.scr.journal.dao.JsonLoader;
 import com.scr.journal.dao.JsonPersister;
@@ -49,10 +50,17 @@ public class JournalModule extends AbstractModule {
 
     @Provides
     @Singleton
+    public CsvLoader createCsvLoader(@Named("character.encoding") String charset) {
+        return new CsvLoader(charset);
+    }
+
+    @Provides
+    @Singleton
     public JournalController createJournalController(
             JournalRegistry journalRegistry,
+            CsvLoader csvLoader,
             ExcelWriter excelWriter) {
-        return new JournalController(journalRegistry, excelWriter);
+        return new JournalController(journalRegistry, csvLoader, excelWriter);
     }
 
     @Provides

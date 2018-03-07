@@ -13,13 +13,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.function.Supplier;
 
 public class ExcelWriter {
 
-    public void save(Path generatedWorkbookPath, Journals data) {
+    public void save(String exportFilePath, Journals data) {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("2018");
 
@@ -46,7 +46,8 @@ public class ExcelWriter {
                     .addCell(journal::getExpenseType);
         }
 
-        try (OutputStream outputStream = Files.newOutputStream(generatedWorkbookPath,
+
+        try (OutputStream outputStream = Files.newOutputStream(Paths.get(exportFilePath),
                 StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING,
                 StandardOpenOption.WRITE)) {

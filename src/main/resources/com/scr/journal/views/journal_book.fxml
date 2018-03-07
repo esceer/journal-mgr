@@ -30,7 +30,7 @@
           <Menu mnemonicParsing="false" text="File">
             <items>
               <MenuItem mnemonicParsing="true" onAction="#handleExport" text="_Export..." />
-                <MenuItem mnemonicParsing="true" text="_Import..." />
+                <MenuItem mnemonicParsing="true" onAction="#handleImport" text="_Import..." />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Help">
@@ -153,7 +153,7 @@
                                <PropertyValueFactory property="invoiceNumber" />
                            </cellValueFactory>
                        </TableColumn>
-                       <TableColumn text="Amount">
+                       <TableColumn style="-fx-alignment: CENTER-RIGHT;" text="Amount">
                            <cellValueFactory>
                                <PropertyValueFactory property="amount" />
                            </cellValueFactory>

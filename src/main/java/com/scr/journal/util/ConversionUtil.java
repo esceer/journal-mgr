@@ -26,9 +26,11 @@ public class ConversionUtil {
         if (str == null) {
             return null;
         }
-        if (targetType.isAssignableFrom(Integer.class)) {
-            return (T) Integer.valueOf(str);
-        } if (targetType.isAssignableFrom(LocalDate.class)) {
+        if (targetType.isAssignableFrom(Long.class)) {
+            return (T) Long.valueOf(str);
+        } if (targetType.isAssignableFrom(Double.class)) {
+            return (T) Double.valueOf(str);
+        } else if (targetType.isAssignableFrom(LocalDate.class)) {
             return (T) DateUtil.parse(str);
         } else if (targetType.isAssignableFrom(PaymentType.class)) {
             return (T) PaymentType.tryParse(str);
