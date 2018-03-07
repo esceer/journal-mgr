@@ -1,12 +1,12 @@
 package com.scr.journal.controllers;
 
-import com.scr.journal.dao.DataLoader;
-import com.scr.journal.dao.DataPersister;
+import com.scr.journal.dao.ExcelWriter;
 import com.scr.journal.model.Journal;
 import com.scr.journal.model.Journals;
 import com.scr.journal.model.PaymentDirection;
 import com.scr.journal.model.PaymentType;
 import com.scr.journal.util.DateUtil;
+import com.scr.journal.util.JournalRegistry;
 import com.scr.journal.util.ValidationUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -14,9 +14,12 @@ import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.stage.FileChooser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -24,44 +27,27 @@ import java.util.stream.Collectors;
 public class JournalController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JournalController.class);
+    private static final String DEFAULT_EXPORTED_EXCEL_FILE_NAME = "report.xlsx";
 
-    @FXML
-    private Label infoLabel;
+    @FXML private Label infoLabel;
+    @FXML private DatePicker datePicker;
+    @FXML private ComboBox<PaymentType> paymentTypeComboBox;
+    @FXML private ToggleGroup paymentDirectionGroup;
+    @FXML private TextField invoiceNumberTextField;
+    @FXML private TextField amountTextField;
+    @FXML private TextField reasonTextField;
+    @FXML private TextField addressTextField;
+    @FXML private ComboBox<String> categoryComboBox;
+    @FXML private TableView<Journal> journalTableView;
 
-    @FXML
-    private DatePicker datePicker;
+    private final ExcelWriter excelWriter;
+    private final JournalRegistry journalRegistry;
 
-    @FXML
-    private ComboBox<PaymentType> paymentTypeComboBox;
+    private ObservableList<Journal> observableJournals;
 
-    @FXML
-    private ToggleGroup paymentDirectionGroup;
-
-    @FXML
-    private TextField invoiceNumberTextField;
-
-    @FXML
-    private TextField amountTextField;
-
-    @FXML
-    private TextField reasonTextField;
-
-    @FXML
-    private TextField addressTextField;
-
-    @FXML
-    private ComboBox<String> categoryComboBox;
-
-    @FXML
-    private TableView<Journal> journalTableView;
-
-    private final ObservableList<Journal> journals;
-
-    private final DataPersister<Journals> journalPersister;
-
-    public JournalController(DataLoader<Journals> journalLoader, DataPersister<Journals> journalPersister) {
-        this.journals = FXCollections.observableArrayList(journalLoader.load().getJournals());
-        this.journalPersister = journalPersister;
+    public JournalController(JournalRegistry journalRegistry, ExcelWriter excelWriter) {
+        this.excelWriter = excelWriter;
+        this.journalRegistry = journalRegistry;
     }
 
     @FXML
@@ -85,8 +71,7 @@ public class JournalController {
     @FXML
     protected void handleAddClicked(ActionEvent event) {
         Journal journal = createJournal();
-        journals.add(journal);
-        journalPersister.persist(Journals.from(journals));
+        journalRegistry.add(journal);
 
         resetControls();
 
@@ -97,9 +82,12 @@ public class JournalController {
     protected void handleDeleteClicked(ActionEvent event) {
         int selectedIndex = journalTableView.getSelectionModel().getSelectedIndex();
         if (selectedIndex >= 0) {
-            journals.remove(selectedIndex);
-            journalPersister.persist(Journals.from(journals));
+            Journal selectedJournal = observableJournals.get(selectedIndex);
+            journalRegistry.remove(selectedJournal);
             infoLabel.setText("Deleted journal");
+
+            reloadJournals();
+            filterJournals();
         } else {
             throw new IllegalArgumentException("Failed to delete journal as no journal was selected");
         }
@@ -108,7 +96,27 @@ public class JournalController {
     @FXML
     protected void handleSearchClicked(ActionEvent event) {
         infoLabel.setText("Filtering journals...");
-        FilteredList<Journal> filteredJournals = new FilteredList<>(FXCollections.observableArrayList(journals));
+        filterJournals();
+        infoLabel.setText("Filtering journals... Finished");
+    }
+
+    @FXML
+    protected void handleResetClicked(ActionEvent event) {
+        resetControls();
+        infoLabel.setText(null);
+    }
+
+    @FXML
+    protected void handleExport(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save file");
+        fileChooser.setInitialFileName(DEFAULT_EXPORTED_EXCEL_FILE_NAME);
+        File exportFilePath = fileChooser.showSaveDialog(null);
+        excelWriter.save(Paths.get(exportFilePath.getPath()), Journals.from(observableJournals));
+    }
+
+    private void filterJournals() {
+        FilteredList<Journal> filteredJournals = new FilteredList<>(observableJournals);
 
         LocalDate date = datePicker.getValue();
         if (date != null) {
@@ -154,14 +162,8 @@ public class JournalController {
             filteredJournals = filteredJournals.filtered(journal -> journal.getExpenseType().equalsIgnoreCase(expenseType));
         }
 
-        journalTableView.setItems(FXCollections.observableArrayList(filteredJournals));
-        infoLabel.setText("Filtering journals... Finished");
-    }
-
-    @FXML
-    protected void handleResetClicked(ActionEvent event) {
-        resetControls();
-        infoLabel.setText(null);
+        observableJournals = FXCollections.observableArrayList(filteredJournals);
+        journalTableView.setItems(observableJournals);
     }
 
     private Journal createJournal() {
@@ -204,7 +206,9 @@ public class JournalController {
     }
 
     private void resetControls() {
-        journalTableView.setItems(journals);
+        reloadJournals();
+
+        journalTableView.setItems(observableJournals);
         datePicker.setValue(null);
         paymentTypeComboBox.setItems(FXCollections.observableArrayList(PaymentType.values()));
         paymentTypeComboBox.getSelectionModel().clearSelection();
@@ -216,13 +220,17 @@ public class JournalController {
         categoryComboBox.getSelectionModel().clearSelection();
         categoryComboBox.setItems(
                 FXCollections.observableList(
-                        journals.stream()
+                        observableJournals.stream()
                                 .map(Journal::getExpenseType)
                                 .distinct()
                                 .sorted()
                                 .collect(Collectors.toList()))
         );
         categoryComboBox.setValue(null);
+    }
+
+    private void reloadJournals() {
+        observableJournals = FXCollections.observableArrayList(journalRegistry.getJournals());
     }
 
 }

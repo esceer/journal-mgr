@@ -5,11 +5,11 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.scr.journal.controllers.JournalController;
-import com.scr.journal.dao.DataLoader;
-import com.scr.journal.dao.DataPersister;
+import com.scr.journal.dao.ExcelWriter;
 import com.scr.journal.dao.JsonLoader;
 import com.scr.journal.dao.JsonPersister;
 import com.scr.journal.model.Journals;
+import com.scr.journal.util.JournalRegistry;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -35,13 +35,13 @@ public class JournalModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public DataLoader<Journals> createJournalLoader(@Named("json_file_path")Path filePath) {
+    public JsonLoader<Journals> createJournalLoader(@Named("json_file_path")Path filePath) {
         return new JsonLoader<>(filePath, Journals.class);
     }
 
     @Provides
     @Singleton
-    public DataPersister<Journals> createJournalPersister(
+    public JsonPersister<Journals> createJournalPersister(
             @Named("json_file_path") Path filePath,
             @Named("backup_file_path") Path backupPath) {
         return new JsonPersister<>(filePath, backupPath);
@@ -49,8 +49,18 @@ public class JournalModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public JournalController createJournalController(DataLoader<Journals> journalLoader, DataPersister<Journals> journalPersister) {
-        return new JournalController(journalLoader, journalPersister);
+    public JournalController createJournalController(
+            JournalRegistry journalRegistry,
+            ExcelWriter excelWriter) {
+        return new JournalController(journalRegistry, excelWriter);
+    }
+
+    @Provides
+    @Singleton
+    public JournalRegistry createJournalRegistry(
+            JsonLoader<Journals> journalLoader,
+            JsonPersister<Journals> journalPersister) {
+        return new JournalRegistry(journalLoader, journalPersister);
     }
 
 }

@@ -10,7 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 
-public class JsonPersister<T> implements DataPersister<T> {
+public class JsonPersister<T> implements DataPersister<T>, DataBackupHandler {
 
     private final Path filePath;
     private final Path backUpFilePath;

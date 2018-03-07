@@ -3,8 +3,10 @@ package com.scr.journal;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
+import com.google.inject.TypeLiteral;
 import com.scr.journal.config.JournalModule;
-import com.scr.journal.dao.DataPersister;
+import com.scr.journal.dao.DataBackupHandler;
+import com.scr.journal.dao.JsonPersister;
 import com.scr.journal.model.Journals;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -23,8 +25,8 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Injector injector = Guice.createInjector(new JournalModule());
-        DataPersister<Journals> persister = injector.getInstance(new Key<DataPersister<Journals>>() {});
-        persister.createBackup();
+        DataBackupHandler dataBackupHandler = injector.getInstance(Key.get(new TypeLiteral<JsonPersister<Journals>>() {}));
+        dataBackupHandler.createBackup();
 
         FXMLLoader fxmlLoader = new FXMLLoader();
         fxmlLoader.setControllerFactory(injector::getInstance);
