@@ -2,7 +2,7 @@ package com.scr.journal.dao;
 
 import com.scr.journal.model.Journal;
 import com.scr.journal.model.Journals;
-import com.scr.journal.util.ConversionUtil;
+import com.scr.journal.util.ConversionUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -74,7 +74,7 @@ public class ExcelWriter {
         }
 
         public RowBuilder addCell(Supplier<?> getter) {
-            return addCell(ConversionUtil.convert(getter.get()));
+            return addCell(ConversionUtils.convert(getter.get()));
         }
 
         public RowBuilder addCell(String strValue) {

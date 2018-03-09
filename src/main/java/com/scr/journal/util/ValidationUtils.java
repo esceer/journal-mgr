@@ -1,6 +1,6 @@
 package com.scr.journal.util;
 
-public final class ValidationUtil {
+public final class ValidationUtils {
 
     public static <T> void ifPresent(T objToCheck, Runnable runnable) {
         if (objToCheck != null) {
@@ -36,7 +36,7 @@ public final class ValidationUtil {
         return exception;
     }
 
-    private ValidationUtil() {
+    private ValidationUtils() {
         throw new UnsupportedOperationException();
     }
 

@@ -5,19 +5,18 @@ import com.scr.journal.dao.DataPersister;
 import com.scr.journal.model.Journal;
 import com.scr.journal.model.Journals;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
 public class JournalRegistry {
 
-    private final Collection<Journal> journals;
+    private final List<Journal> journals;
 
     private final DataPersister<Journals> journalPersister;
 
     public JournalRegistry(DataLoader<Journals> journalLoader, DataPersister<Journals> journalPersister) {
-        this.journals = journalLoader.load().getJournals();
+        this.journals = new ArrayList<>(journalLoader.load().getJournals());
         this.journalPersister = journalPersister;
+        sort();
     }
 
     public Collection<Journal> getJournals() {
@@ -32,12 +31,22 @@ public class JournalRegistry {
         for (Journal journal : journalsToAdd) {
             journals.add(journal);
         }
+        sort();
         persist();
     }
 
     public void remove(Journal journal) {
         journals.remove(journal);
         persist();
+    }
+
+    public void replace(Journal oldJournal, Journal newJournal) {
+        journals.remove(oldJournal);
+        add(newJournal);
+    }
+
+    private void sort() {
+        Collections.sort(journals);
     }
 
     private void persist() {

@@ -10,6 +10,7 @@
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
@@ -35,7 +36,14 @@
           </Menu>
           <Menu mnemonicParsing="false" text="Help">
             <items>
-              <MenuItem mnemonicParsing="false" text="About" />
+                  <Menu mnemonicParsing="false" text="Language">
+                    <items>
+                      <MenuItem disable="true" mnemonicParsing="false" text="English" />
+                        <MenuItem mnemonicParsing="false" text="Hungarian" />
+                    </items>
+                  </Menu>
+                  <SeparatorMenuItem mnemonicParsing="false" />
+              <MenuItem mnemonicParsing="false" onAction="#handleAbout" text="About" />
             </items>
           </Menu>
         </menus>
@@ -45,6 +53,7 @@
        <SplitPane dividerPositions="0.23" prefHeight="160.0" prefWidth="200.0" BorderPane.alignment="CENTER">
            <items>
                <VBox minWidth="180.0" prefHeight="575.0" prefWidth="200.0" spacing="15.0" BorderPane.alignment="CENTER">
+                   <SplitPane.resizableWithParent>false</SplitPane.resizableWithParent>
                    <children>
                        <Label text="Journal Book">
                            <font>
@@ -87,7 +96,7 @@
                                <Insets bottom="-15.0" />
                            </VBox.margin>
                        </Label>
-                       <TextField fx:id="invoiceNumberTextField" maxWidth="200.0" VBox.vgrow="ALWAYS" />
+                       <TextField fx:id="invoiceNumberTextField" maxWidth="400.0" VBox.vgrow="ALWAYS" />
                        <Label text="Amount:">
                            <VBox.margin>
                                <Insets bottom="-15.0" />
@@ -118,7 +127,7 @@
                        <Region prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
                        <HBox spacing="5.0" VBox.vgrow="ALWAYS">
                            <children>
-                               <Button mnemonicParsing="false" onAction="#handleAddClicked" text="Add" />
+                               <Button mnemonicParsing="false" onAction="#handleSaveClicked" text="Save" />
                                <Button mnemonicParsing="false" onAction="#handleSearchClicked" text="Search" />
                                <Region HBox.hgrow="ALWAYS" />
                                <Button mnemonicParsing="false" onAction="#handleResetClicked" text="Reset" />
@@ -133,42 +142,42 @@
                </VBox>
                <TableView fx:id="journalTableView" editable="true" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                    <columns>
-                       <TableColumn text="Date">
+                       <TableColumn fx:id="dateColumn" text="Date">
                            <cellValueFactory>
                                <PropertyValueFactory property="date" />
                            </cellValueFactory>
                        </TableColumn>
-                       <TableColumn text="Payment type">
+                       <TableColumn fx:id="paymentTypeColumn" text="Payment type">
                            <cellValueFactory>
                                <PropertyValueFactory property="paymentType" />
                            </cellValueFactory>
                        </TableColumn>
-                       <TableColumn text="Payment direction">
+                       <TableColumn fx:id="paymentDirectionColumn" text="Payment direction">
                            <cellValueFactory>
                                <PropertyValueFactory property="paymentDirection" />
                            </cellValueFactory>
                        </TableColumn>
-                       <TableColumn text="Invoice number">
+                       <TableColumn fx:id="invoiceNumberColumn" text="Invoice number">
                            <cellValueFactory>
                                <PropertyValueFactory property="invoiceNumber" />
                            </cellValueFactory>
                        </TableColumn>
-                       <TableColumn style="-fx-alignment: CENTER-RIGHT;" text="Amount">
+                       <TableColumn fx:id="amountColumn" style="-fx-alignment: CENTER-RIGHT;" text="Amount">
                            <cellValueFactory>
                                <PropertyValueFactory property="amount" />
                            </cellValueFactory>
                        </TableColumn>
-                       <TableColumn text="Reason">
+                       <TableColumn fx:id="reasonColumn" text="Reason">
                            <cellValueFactory>
                                <PropertyValueFactory property="reason" />
                            </cellValueFactory>
                        </TableColumn>
-                       <TableColumn text="Address">
+                       <TableColumn fx:id="addressColumn" text="Address">
                            <cellValueFactory>
                                <PropertyValueFactory property="address" />
                            </cellValueFactory>
                        </TableColumn>
-                       <TableColumn text="Expense type">
+                       <TableColumn fx:id="expenseTypeColumn" text="Expense type">
                            <cellValueFactory>
                                <PropertyValueFactory property="expenseType" />
                            </cellValueFactory>
@@ -180,6 +189,7 @@
                    <contextMenu>
                        <ContextMenu>
                            <items>
+                               <MenuItem fx:id="editContextMenu" mnemonicParsing="false" onAction="#handleEditClicked" text="Edit" />
                                <MenuItem fx:id="deleteContextMenu" mnemonicParsing="false" onAction="#handleDeleteClicked" text="Delete" />
                            </items>
                        </ContextMenu>

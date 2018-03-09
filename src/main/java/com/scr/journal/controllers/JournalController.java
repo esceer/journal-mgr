@@ -6,20 +6,26 @@ import com.scr.journal.model.Journal;
 import com.scr.journal.model.Journals;
 import com.scr.journal.model.PaymentDirection;
 import com.scr.journal.model.PaymentType;
-import com.scr.journal.util.DateUtil;
+import com.scr.journal.util.ConversionUtils;
+import com.scr.journal.util.DateUtils;
 import com.scr.journal.util.JournalRegistry;
-import com.scr.journal.util.ValidationUtil;
+import com.scr.journal.util.ValidationUtils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.*;
 import java.io.File;
+import java.net.URI;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -29,27 +35,50 @@ public class JournalController {
     private static final Logger LOGGER = LoggerFactory.getLogger(JournalController.class);
     private static final String DEFAULT_EXPORTED_EXCEL_FILE_NAME = "report.xlsx";
 
-    @FXML private Label infoLabel;
-    @FXML private DatePicker datePicker;
-    @FXML private ComboBox<PaymentType> paymentTypeComboBox;
-    @FXML private ToggleGroup paymentDirectionGroup;
-    @FXML private TextField invoiceNumberTextField;
-    @FXML private TextField amountTextField;
-    @FXML private TextField reasonTextField;
-    @FXML private TextField addressTextField;
-    @FXML private ComboBox<String> categoryComboBox;
-    @FXML private TableView<Journal> journalTableView;
+    private volatile boolean editingMode = false;
+
+    @FXML
+    private Label infoLabel;
+    @FXML
+    private DatePicker datePicker;
+    @FXML
+    private ComboBox<PaymentType> paymentTypeComboBox;
+    @FXML
+    private ToggleGroup paymentDirectionGroup;
+    @FXML
+    private TextField invoiceNumberTextField;
+    @FXML
+    private TextField amountTextField;
+    @FXML
+    private TextField reasonTextField;
+    @FXML
+    private TextField addressTextField;
+    @FXML
+    private ComboBox<String> categoryComboBox;
+
+    @FXML
+    private TableView<Journal> journalTableView;
+    @FXML
+    private TableColumn<Journal, LocalDate> dateColumn;
+    @FXML
+    private TableColumn<Journal, Long> amountColumn;
 
     private final JournalRegistry journalRegistry;
     private final CsvLoader csvLoader;
     private final ExcelWriter excelWriter;
+    private NumberFormat numberFormat;
 
     private ObservableList<Journal> observableJournals;
 
-    public JournalController(JournalRegistry journalRegistry, CsvLoader csvLoader, ExcelWriter excelWriter) {
+    public JournalController(
+            JournalRegistry journalRegistry,
+            CsvLoader csvLoader,
+            ExcelWriter excelWriter,
+            NumberFormat numberFormat) {
         this.journalRegistry = journalRegistry;
         this.csvLoader = csvLoader;
         this.excelWriter = excelWriter;
+        this.numberFormat = numberFormat;
     }
 
     @FXML
@@ -57,31 +86,78 @@ public class JournalController {
         // Set input fields to their default values
         resetControls();
 
+        // Set custom format for a few cells
+        dateColumn.setCellFactory(column ->
+                new TableCell<Journal, LocalDate>() {
+                    @Override
+                    protected void updateItem(LocalDate item, boolean empty) {
+                        if (item == null || empty) {
+                            setText(null);
+                        } else {
+                            setText(ConversionUtils.convert(item));
+                        }
+                    }
+                }
+        );
+        amountColumn.setCellFactory(column ->
+                new TableCell<Journal, Long>() {
+                    @Override
+                    protected void updateItem(Long item, boolean empty) {
+                        if (item == null || empty) {
+                            setText(null);
+                        } else {
+                            setText(numberFormat.format(item));
+                        }
+                    }
+                }
+        );
+
         // Add change listeners
+        journalTableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (editingMode) {
+                mirrorEditFields();
+            }
+        });
         amountTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue.matches("^\\d*$")) {
                 amountTextField.setText(oldValue);
             }
         });
 
+        // Set common error handling
         Thread.setDefaultUncaughtExceptionHandler((thread, cause) -> {
             LOGGER.error("Exception on thread: " + thread.getName(), cause);
-            infoLabel.setText("Exception: " + ValidationUtil.getRootCause(cause).getMessage());
+            infoLabel.setText("Exception: " + ValidationUtils.getRootCause(cause).getMessage());
         });
     }
 
     @FXML
-    protected void handleAddClicked(ActionEvent event) {
-        Journal journal = createJournal();
-        journalRegistry.add(journal);
+    protected void handleSaveClicked(ActionEvent event) {
+        int selectedIndex = journalTableView.getSelectionModel().getSelectedIndex();
+        if (editingMode && selectedIndex >= 0) {
+            Journal editedJournal = createJournal();
+            Journal selectedJournal = observableJournals.get(selectedIndex);
+            journalRegistry.replace(selectedJournal, editedJournal);
 
+            infoLabel.setText("Edited journal");
+        } else {
+            Journal journal = createJournal();
+            journalRegistry.add(journal);
+
+            infoLabel.setText("New journal created");
+        }
         resetControls();
+    }
 
-        infoLabel.setText("New journal created");
+    @FXML
+    protected void handleEditClicked(ActionEvent event) {
+        mirrorEditFields();
     }
 
     @FXML
     protected void handleDeleteClicked(ActionEvent event) {
+        cancelEditingMode();
+
         int selectedIndex = journalTableView.getSelectionModel().getSelectedIndex();
         if (selectedIndex >= 0) {
             Journal selectedJournal = observableJournals.get(selectedIndex);
@@ -97,6 +173,8 @@ public class JournalController {
 
     @FXML
     protected void handleSearchClicked(ActionEvent event) {
+        cancelEditingMode();
+
         infoLabel.setText("Filtering journals...");
         reloadJournals();
         filterJournals();
@@ -130,12 +208,46 @@ public class JournalController {
         resetControls();
     }
 
+    @FXML
+    protected void handleAbout(ActionEvent event) {
+        try {
+            Desktop.getDesktop().browse(new URI("https://github.com/esceer/journal-mgr"));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void mirrorEditFields() {
+        int selectedIndex = journalTableView.getSelectionModel().getSelectedIndex();
+        if (selectedIndex >= 0) {
+            Journal selectedJournal = observableJournals.get(selectedIndex);
+            datePicker.setValue(selectedJournal.getDate());
+            paymentTypeComboBox.setValue(selectedJournal.getPaymentType());
+            paymentDirectionGroup.selectToggle(
+                    paymentDirectionGroup.getToggles()
+                            .stream()
+                            .filter(toggle -> toggle.getUserData().equals(selectedJournal.getPaymentDirection().getAssociatedValue()))
+                            .findFirst()
+                            .orElseThrow(IllegalArgumentException::new));
+            invoiceNumberTextField.setText(selectedJournal.getInvoiceNumber());
+            amountTextField.setText(ConversionUtils.convert(selectedJournal.getAmount()));
+            reasonTextField.setText(selectedJournal.getReason());
+            addressTextField.setText(selectedJournal.getAddress());
+            categoryComboBox.setValue(selectedJournal.getExpenseType());
+
+            infoLabel.setText("Editing journal...");
+            enterEditingMode();
+        } else {
+            throw new IllegalArgumentException("Failed to edit journal as no journal was selected");
+        }
+    }
+
     private void filterJournals() {
         FilteredList<Journal> filteredJournals = new FilteredList<>(observableJournals);
 
         LocalDate date = datePicker.getValue();
         if (date != null) {
-            filteredJournals = filteredJournals.filtered(journal -> journal.getDate().equals(DateUtil.toString(date)));
+            filteredJournals = filteredJournals.filtered(journal -> journal.getDate().equals(DateUtils.toString(date)));
         }
 
         PaymentType paymentType = paymentTypeComboBox.getValue();
@@ -153,27 +265,27 @@ public class JournalController {
         }
 
         String invoiceNumber = invoiceNumberTextField.getText();
-        if (!ValidationUtil.isNullOrEmpty(invoiceNumber)) {
+        if (!ValidationUtils.isNullOrEmpty(invoiceNumber)) {
             filteredJournals = filteredJournals.filtered(journal -> journal.getInvoiceNumber().equalsIgnoreCase(invoiceNumber));
         }
 
         String amountStr = amountTextField.getText();
-        if (!ValidationUtil.isNullOrEmpty(amountStr)) {
+        if (!ValidationUtils.isNullOrEmpty(amountStr)) {
             filteredJournals = filteredJournals.filtered(journal -> journal.getAmount() == Long.parseLong(amountStr));
         }
 
         String reason = reasonTextField.getText();
-        if (!ValidationUtil.isNullOrEmpty(reason)) {
+        if (!ValidationUtils.isNullOrEmpty(reason)) {
             filteredJournals = filteredJournals.filtered(journal -> journal.getReason().equalsIgnoreCase(reason));
         }
 
         String address = addressTextField.getText();
-        if (!ValidationUtil.isNullOrEmpty(address)) {
+        if (!ValidationUtils.isNullOrEmpty(address)) {
             filteredJournals = filteredJournals.filtered(journal -> journal.getAddress().equalsIgnoreCase(address));
         }
 
         String expenseType = categoryComboBox.getValue();
-        if (!ValidationUtil.isNullOrEmpty(expenseType)) {
+        if (!ValidationUtils.isNullOrEmpty(expenseType)) {
             filteredJournals = filteredJournals.filtered(journal -> journal.getExpenseType().equalsIgnoreCase(expenseType));
         }
 
@@ -182,7 +294,7 @@ public class JournalController {
     }
 
     private Journal createJournal() {
-        String date = DateUtil.toString(datePicker.getValue());
+        LocalDate date = datePicker.getValue();
         PaymentType paymentType = paymentTypeComboBox.getValue();
         PaymentDirection paymentDirection = paymentDirectionGroup.getSelectedToggle() != null
                 ? PaymentDirection.tryParse(Objects.toString(paymentDirectionGroup.getSelectedToggle().getUserData()))
@@ -208,7 +320,7 @@ public class JournalController {
     }
 
     private void validateJournal(Journal journal) {
-        boolean invalid = ValidationUtil.isNullOrEmpty(
+        boolean invalid = ValidationUtils.isNullOrEmpty(
                 journal.getDate(),
                 journal.getPaymentType(),
                 journal.getPaymentDirection(),
@@ -222,6 +334,7 @@ public class JournalController {
 
     private void resetControls() {
         reloadJournals();
+        cancelEditingMode();
 
         journalTableView.setItems(observableJournals);
         datePicker.setValue(null);
@@ -246,6 +359,14 @@ public class JournalController {
 
     private void reloadJournals() {
         observableJournals = FXCollections.observableArrayList(journalRegistry.getJournals());
+    }
+
+    private void enterEditingMode() {
+        editingMode = true;
+    }
+
+    private void cancelEditingMode() {
+        editingMode = false;
     }
 
 }

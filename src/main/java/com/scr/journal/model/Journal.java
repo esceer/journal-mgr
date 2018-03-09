@@ -4,17 +4,18 @@ import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 
+import java.time.LocalDate;
 import java.util.Objects;
 
-public class Journal {
+public class Journal implements Comparable<Journal> {
 
-    private SimpleStringProperty date;
+    private SimpleObjectProperty<LocalDate> date;
     private SimpleObjectProperty<PaymentType> paymentType;
     private SimpleObjectProperty<PaymentDirection> paymentDirection;
     private SimpleStringProperty invoiceNumber;
+    private SimpleLongProperty amount;
     private SimpleStringProperty reason;
     private SimpleStringProperty address;
-    private SimpleLongProperty amount;
     private SimpleStringProperty expenseType;
 
     public Journal() {
@@ -22,7 +23,7 @@ public class Journal {
     }
 
     public Journal(
-            String date,
+            LocalDate date,
             PaymentType paymentType,
             PaymentDirection paymentDirection,
             String invoiceNumber,
@@ -30,7 +31,7 @@ public class Journal {
             String reason,
             String address,
             String expenseType) {
-        this.date = new SimpleStringProperty(date);
+        this.date = new SimpleObjectProperty(date);
         this.paymentType = new SimpleObjectProperty<>(paymentType);
         this.paymentDirection = new SimpleObjectProperty<>(paymentDirection);
         this.invoiceNumber = new SimpleStringProperty(invoiceNumber);
@@ -40,11 +41,11 @@ public class Journal {
         this.expenseType = new SimpleStringProperty(expenseType);
     }
 
-    public String getDate() {
+    public LocalDate getDate() {
         return date.get();
     }
 
-    public void setDate(String date) {
+    public void setDate(LocalDate date) {
         this.date.set(date);
     }
 
@@ -121,7 +122,7 @@ public class Journal {
 
     @Override
     public int hashCode() {
-        return Objects.hash(date, paymentType, paymentDirection, invoiceNumber, reason, address, amount, expenseType);
+        return Objects.hash(date, paymentType, paymentDirection, invoiceNumber, amount, reason, address, expenseType);
     }
 
     @Override
@@ -131,10 +132,15 @@ public class Journal {
                 ", paymentType=" + paymentType +
                 ", paymentDirection=" + paymentDirection +
                 ", invoiceNumber=" + invoiceNumber +
+                ", amount=" + amount +
                 ", reason=" + reason +
                 ", address=" + address +
-                ", amount=" + amount +
                 ", expenseType=" + expenseType +
                 '}';
+    }
+
+    @Override
+    public int compareTo(Journal o) {
+        return o.getDate().compareTo(getDate());
     }
 }

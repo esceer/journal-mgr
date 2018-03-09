@@ -5,7 +5,7 @@ import com.scr.journal.model.PaymentType;
 
 import java.time.LocalDate;
 
-public class ConversionUtil {
+public class ConversionUtils {
 
     public static <T> String convert(T obj) {
         if (obj == null) {
@@ -16,7 +16,7 @@ public class ConversionUtil {
         } else if (obj instanceof Integer) {
             return Integer.toString((Integer) obj);
         } else if (obj instanceof LocalDate) {
-            return DateUtil.toString((LocalDate) obj);
+            return DateUtils.toString((LocalDate) obj);
         } else {
             return obj.toString();
         }
@@ -31,7 +31,7 @@ public class ConversionUtil {
         } if (targetType.isAssignableFrom(Double.class)) {
             return (T) Double.valueOf(str);
         } else if (targetType.isAssignableFrom(LocalDate.class)) {
-            return (T) DateUtil.parse(str);
+            return (T) DateUtils.parse(str);
         } else if (targetType.isAssignableFrom(PaymentType.class)) {
             return (T) PaymentType.tryParse(str);
         } else if (targetType.isAssignableFrom(PaymentDirection.class)) {

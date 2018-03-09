@@ -2,11 +2,16 @@ package com.scr.journal.util;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.time.LocalDate;
 import java.util.concurrent.Callable;
 
 public final class JsonConverter {
@@ -17,9 +22,26 @@ public final class JsonConverter {
         OBJECT_MAPPER = new ObjectMapper();
 
         ParameterNamesModule module = new ParameterNamesModule();
-//        module.addSerializer(...)
-        OBJECT_MAPPER.registerModule(module);
+        module.addDeserializer(LocalDate.class, new JsonDeserializer<LocalDate>() {
+            @Override
+            public LocalDate deserialize(JsonParser p, DeserializationContext context) throws IOException, JsonProcessingException {
+                String dateStr = context.readValue(p, String.class);
+                return ConversionUtils.convert(dateStr, LocalDate.class);
+            }
+        });
+        module.addSerializer(LocalDate.class, new JsonSerializer<LocalDate>() {
+            @Override
+            public void serialize(LocalDate value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+                if (value != null) {
+                    String dateStr = ConversionUtils.convert(value);
+                    gen.writeString(dateStr);
+                } else {
+                    gen.writeNull();
+                }
+            }
+        });
 
+        OBJECT_MAPPER.registerModule(module);
         OBJECT_MAPPER.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
         OBJECT_MAPPER.setVisibility(PropertyAccessor.CREATOR, JsonAutoDetect.Visibility.PUBLIC_ONLY);
         OBJECT_MAPPER.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);

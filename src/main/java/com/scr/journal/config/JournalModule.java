@@ -14,6 +14,8 @@ import com.scr.journal.util.JournalRegistry;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 public class JournalModule extends AbstractModule {
 
@@ -50,7 +52,7 @@ public class JournalModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public CsvLoader createCsvLoader(@Named("character.encoding") String charset) {
+    public CsvLoader createCsvLoader(@Named("system.character.encoding") String charset) {
         return new CsvLoader(charset);
     }
 
@@ -59,8 +61,9 @@ public class JournalModule extends AbstractModule {
     public JournalController createJournalController(
             JournalRegistry journalRegistry,
             CsvLoader csvLoader,
-            ExcelWriter excelWriter) {
-        return new JournalController(journalRegistry, csvLoader, excelWriter);
+            ExcelWriter excelWriter,
+            NumberFormat numberFormat) {
+        return new JournalController(journalRegistry, csvLoader, excelWriter, numberFormat);
     }
 
     @Provides
@@ -69,6 +72,14 @@ public class JournalModule extends AbstractModule {
             JsonLoader<Journals> journalLoader,
             JsonPersister<Journals> journalPersister) {
         return new JournalRegistry(journalLoader, journalPersister);
+    }
+
+    @Provides
+    @Singleton
+    public NumberFormat getNumberFormat(
+            @Named("system.locale.language") String localeLanguage,
+            @Named("system.locale.country") String localeCountry) {
+        return NumberFormat.getCurrencyInstance(new Locale(localeLanguage, localeCountry));
     }
 
 }

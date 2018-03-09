@@ -4,13 +4,14 @@ import com.scr.journal.model.Journal;
 import com.scr.journal.model.Journals;
 import com.scr.journal.model.PaymentDirection;
 import com.scr.journal.model.PaymentType;
-import com.scr.journal.util.ConversionUtil;
+import com.scr.journal.util.ConversionUtils;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,10 +55,10 @@ public class CsvLoader {
         if (!amountMatcher.matches()) {
             throw new IllegalStateException("Unexpected amount format");
         }
-        long amount = ConversionUtil.convert(amountMatcher.group(1), Long.class);
+        long amount = ConversionUtils.convert(amountMatcher.group(1), Long.class);
 
         Journal journal = new Journal();
-        journal.setDate(date);
+        journal.setDate(ConversionUtils.convert(date, LocalDate.class));
         journal.setPaymentType(PaymentType.BANK_TRANSFER);
         journal.setPaymentDirection(amount > 0 ? PaymentDirection.INCOMING : PaymentDirection.OUTGOING);
         journal.setInvoiceNumber(invoiceNumber);
