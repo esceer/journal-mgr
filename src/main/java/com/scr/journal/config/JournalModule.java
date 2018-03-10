@@ -3,10 +3,7 @@ package com.scr.journal.config;
 import com.google.inject.*;
 import com.google.inject.name.Named;
 import com.scr.journal.UILoader;
-import com.scr.journal.annotations.BackupFilePath;
-import com.scr.journal.annotations.JournalLoader;
-import com.scr.journal.annotations.JournalPersister;
-import com.scr.journal.annotations.JsonFilePath;
+import com.scr.journal.annotations.*;
 import com.scr.journal.config.provider.FXMLLoaderProvider;
 import com.scr.journal.controllers.JournalController;
 import com.scr.journal.dao.*;
@@ -34,6 +31,8 @@ public class JournalModule extends AbstractModule {
                 .to(Key.get(new TypeLiteral<JsonPersister<Journals>>() {}, JournalPersister.class));
         bind(Key.get(new TypeLiteral<DataLoader<Journals>>() {}, JournalLoader.class))
                 .to(Key.get(new TypeLiteral<JsonLoader<Journals>>() {}, JournalLoader.class));
+        bind(Key.get(new TypeLiteral<DataLoader<Journals>>() {}, BackupLoader.class))
+                .to(Key.get(new TypeLiteral<JsonLoader<Journals>>() {}, BackupLoader.class));
     }
 
     @Provides
@@ -59,6 +58,13 @@ public class JournalModule extends AbstractModule {
     @Singleton
     @JournalLoader
     public JsonLoader<Journals> createJournalLoader(@JsonFilePath Path filePath) {
+        return new JsonLoader<>(filePath, Journals.class);
+    }
+
+    @Provides
+    @Singleton
+    @BackupLoader
+    public JsonLoader<Journals> createBackupLoader(@BackupFilePath Path filePath) {
         return new JsonLoader<>(filePath, Journals.class);
     }
 
@@ -97,8 +103,9 @@ public class JournalModule extends AbstractModule {
     @Singleton
     public JournalRegistry createJournalRegistry(
             @JournalLoader DataLoader<Journals> journalLoader,
-            @JournalPersister DataPersister<Journals> journalPersister) {
-        return new JournalRegistry(journalLoader, journalPersister);
+            @JournalPersister DataPersister<Journals> journalPersister,
+            @BackupLoader DataLoader<Journals> backupLoader) {
+        return new JournalRegistry(journalLoader, journalPersister, backupLoader);
     }
 
     @Provides

@@ -7,6 +7,7 @@ import com.scr.journal.model.Journal;
 import com.scr.journal.model.Journals;
 import com.scr.journal.model.PaymentDirection;
 import com.scr.journal.model.PaymentType;
+import com.scr.journal.util.AlertBuilder;
 import com.scr.journal.util.ConversionUtils;
 import com.scr.journal.util.JournalRegistry;
 import com.scr.journal.util.ValidationUtils;
@@ -80,6 +81,7 @@ public class JournalController {
     private final ExcelWriter excelWriter;
     private final NumberFormat numberFormat;
 
+    private ResourceBundle resourceBundle;
     private ObservableList<Journal> observableJournals;
 
     public JournalController(
@@ -98,7 +100,7 @@ public class JournalController {
     @FXML
     public void initialize() {
         // Get the current resource bundle
-        ResourceBundle resourceBundle = uiLoader.getResourceBundle();
+        resourceBundle = uiLoader.getResourceBundle();
 
         // Set input fields to their default values
         resetControls();
@@ -218,6 +220,8 @@ public class JournalController {
 
         languageHuMenu.setDisable(true);
         languageEnMenu.setDisable(false);
+
+        infoLabel.setText("Language set to Hungarian");
     }
 
     @FXML
@@ -227,6 +231,23 @@ public class JournalController {
 
         languageEnMenu.setDisable(true);
         languageHuMenu.setDisable(false);
+
+        infoLabel.setText("Language set to English");
+    }
+
+    @FXML
+    protected void handleLoadBackup(ActionEvent event) {
+        Optional<ButtonType> userResponse = AlertBuilder
+                .alert(Alert.AlertType.CONFIRMATION)
+                .withTitle(resourceBundle.getString("dialog.backup.title"))
+                .withHeader(resourceBundle.getString("dialog.backup.header"))
+                .withContent(resourceBundle.getString("dialog.backup.content"))
+                .showAndWait();
+        if (userResponse.get() == ButtonType.OK) {
+            journalRegistry.resetToBackup();
+            resetControls();
+            infoLabel.setText("Successfully loaded backup data");
+        }
     }
 
     @FXML

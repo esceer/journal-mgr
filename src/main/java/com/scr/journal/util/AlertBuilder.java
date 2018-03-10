@@ -1,6 +1,9 @@
 package com.scr.journal.util;
 
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+
+import java.util.Optional;
 
 public class AlertBuilder {
 
@@ -31,8 +34,8 @@ public class AlertBuilder {
         alert.show();
     }
 
-    public void showBlocking() {
-        alert.showAndWait();
+    public Optional<ButtonType> showAndWait() {
+        return alert.showAndWait();
     }
 
 }

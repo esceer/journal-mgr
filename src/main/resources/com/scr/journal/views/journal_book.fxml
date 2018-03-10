@@ -32,16 +32,18 @@
             <items>
               <MenuItem mnemonicParsing="true" onAction="#handleExport" text="_Export..." />
                 <MenuItem mnemonicParsing="true" onAction="#handleImport" text="_Import..." />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <Menu mnemonicParsing="false" text="%menu.file.language">
+                    <items>
+                      <MenuItem fx:id="languageEnMenu" disable="true" mnemonicParsing="false" onAction="#handleSetEnglishLanguage" text="%menu.file.language.en" />
+                        <MenuItem fx:id="languageHuMenu" mnemonicParsing="false" onAction="#handleSetHungarianLanguage" text="%menu.file.language.hu" />
+                    </items>
+                  </Menu>
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="%menu.help">
             <items>
-                  <Menu mnemonicParsing="false" text="%menu.help.language">
-                    <items>
-                      <MenuItem fx:id="languageEnMenu" disable="true" mnemonicParsing="false" onAction="#handleSetEnglishLanguage" text="%menu.help.language.en" />
-                        <MenuItem fx:id="languageHuMenu" mnemonicParsing="false" onAction="#handleSetHungarianLanguage" text="%menu.help.language.hu" />
-                    </items>
-                  </Menu>
+                  <MenuItem mnemonicParsing="false" onAction="#handleLoadBackup" text="%menu.help.load_backup" />
                   <SeparatorMenuItem mnemonicParsing="false" />
               <MenuItem mnemonicParsing="false" onAction="#handleAbout" text="%menu.help.about" />
             </items>

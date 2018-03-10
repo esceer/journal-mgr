@@ -9,14 +9,23 @@ import java.util.*;
 
 public class JournalRegistry {
 
-    private final List<Journal> journals;
-
     private final DataPersister<Journals> journalPersister;
+    private final DataLoader<Journals> backupLoader;
 
-    public JournalRegistry(DataLoader<Journals> journalLoader, DataPersister<Journals> journalPersister) {
-        this.journals = new ArrayList<>(journalLoader.load().getJournals());
+    private List<Journal> journals;
+
+    public JournalRegistry(
+            DataLoader<Journals> journalLoader,
+            DataPersister<Journals> journalPersister,
+            DataLoader<Journals> backupLoader) {
         this.journalPersister = journalPersister;
+        this.backupLoader = backupLoader;
+        setJournals(journalLoader.load());
         sort();
+    }
+
+    private void setJournals(Journals journals) {
+        this.journals = new ArrayList<>(journals.getJournals());
     }
 
     public Collection<Journal> getJournals() {
@@ -43,6 +52,11 @@ public class JournalRegistry {
     public void replace(Journal oldJournal, Journal newJournal) {
         journals.remove(oldJournal);
         add(newJournal);
+    }
+
+    public void resetToBackup() {
+        setJournals(backupLoader.load());
+        persist();
     }
 
     private void sort() {
