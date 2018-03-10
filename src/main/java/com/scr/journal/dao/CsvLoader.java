@@ -48,7 +48,7 @@ public class CsvLoader {
         }
         String date = fractions[0];
         String address = fractions[3];
-        String reason = fractions[8];
+        String comment = fractions[8];
         String invoiceNumber = fractions[4];
 
         Matcher amountMatcher = PATTERN_AMOUNT.matcher(fractions[5]);
@@ -64,7 +64,7 @@ public class CsvLoader {
         journal.setInvoiceNumber(invoiceNumber);
         journal.setAmount(Math.abs(amount));
         journal.setAddress(address);
-        journal.setReason(reason);
+        journal.setComment(comment);
         return journal;
     }
 

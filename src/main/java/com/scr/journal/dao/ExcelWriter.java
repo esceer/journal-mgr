@@ -15,9 +15,16 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ResourceBundle;
 import java.util.function.Supplier;
 
 public class ExcelWriter {
+
+    private final ResourceBundle resourceBundle;
+
+    public ExcelWriter(ResourceBundle resourceBundle) {
+        this.resourceBundle = resourceBundle;
+    }
 
     public void save(String exportFilePath, Journals data) {
         Workbook workbook = new XSSFWorkbook();
@@ -25,23 +32,23 @@ public class ExcelWriter {
 
         RowBuilder rowBuilder = new RowBuilder(sheet);
         rowBuilder.addRow()
-                .addCell("Date")
-                .addCell("Payment direction")
-                .addCell("Payment type")
-                .addCell("Invoice number")
-                .addCell("Amount")
-                .addCell("Reason")
-                .addCell("Address")
-                .addCell("Expense type");
+                .addCell(resourceBundle.getString("label.date"))
+                .addCell(resourceBundle.getString("label.payment_type"))
+                .addCell(resourceBundle.getString("label.payment_direction"))
+                .addCell(resourceBundle.getString("label.invoice_number"))
+                .addCell(resourceBundle.getString("label.amount"))
+                .addCell(resourceBundle.getString("label.comment"))
+                .addCell(resourceBundle.getString("label.address"))
+                .addCell(resourceBundle.getString("label.expense_type"));
 
         for (Journal journal : data.getJournals()) {
             rowBuilder.addRow()
                     .addCell(journal::getDate)
-                    .addCell(journal::getPaymentDirection)
                     .addCell(journal::getPaymentType)
+                    .addCell(journal::getPaymentDirection)
                     .addCell(journal::getInvoiceNumber)
                     .addCell(journal::getAmount)
-                    .addCell(journal::getReason)
+                    .addCell(journal::getComment)
                     .addCell(journal::getAddress)
                     .addCell(journal::getExpenseType);
         }

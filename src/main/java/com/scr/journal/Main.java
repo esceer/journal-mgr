@@ -15,6 +15,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.InputStream;
+import java.util.ResourceBundle;
 
 public class Main extends Application {
 
@@ -29,6 +30,7 @@ public class Main extends Application {
         dataBackupHandler.createBackup();
 
         FXMLLoader fxmlLoader = new FXMLLoader();
+        fxmlLoader.setResources(injector.getInstance(ResourceBundle.class));
         fxmlLoader.setControllerFactory(injector::getInstance);
 
         try (InputStream inputStream = Main.class.getResourceAsStream("/com/scr/journal/views/journal_book.fxml")) {

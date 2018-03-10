@@ -7,7 +7,6 @@ import com.scr.journal.model.Journals;
 import com.scr.journal.model.PaymentDirection;
 import com.scr.journal.model.PaymentType;
 import com.scr.journal.util.ConversionUtils;
-import com.scr.journal.util.DateUtils;
 import com.scr.journal.util.JournalRegistry;
 import com.scr.journal.util.ValidationUtils;
 import javafx.collections.FXCollections;
@@ -19,6 +18,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
+import javafx.util.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +27,10 @@ import java.io.File;
 import java.net.URI;
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 public class JournalController {
@@ -50,7 +53,7 @@ public class JournalController {
     @FXML
     private TextField amountTextField;
     @FXML
-    private TextField reasonTextField;
+    private TextField commentTextField;
     @FXML
     private TextField addressTextField;
     @FXML
@@ -61,20 +64,27 @@ public class JournalController {
     @FXML
     private TableColumn<Journal, LocalDate> dateColumn;
     @FXML
+    private TableColumn<Journal, PaymentType> paymentTypeColumn;
+    @FXML
+    private TableColumn<Journal, PaymentDirection> paymentDirectionColumn;
+    @FXML
     private TableColumn<Journal, Long> amountColumn;
 
+    private final ResourceBundle resourceBundle;
     private final JournalRegistry journalRegistry;
     private final CsvLoader csvLoader;
     private final ExcelWriter excelWriter;
-    private NumberFormat numberFormat;
+    private final NumberFormat numberFormat;
 
     private ObservableList<Journal> observableJournals;
 
     public JournalController(
+            ResourceBundle resourceBundle,
             JournalRegistry journalRegistry,
             CsvLoader csvLoader,
             ExcelWriter excelWriter,
             NumberFormat numberFormat) {
+        this.resourceBundle = resourceBundle;
         this.journalRegistry = journalRegistry;
         this.csvLoader = csvLoader;
         this.excelWriter = excelWriter;
@@ -111,6 +121,69 @@ public class JournalController {
                     }
                 }
         );
+        paymentDirectionColumn.setCellFactory(column ->
+                new TableCell<Journal, PaymentDirection>() {
+                    @Override
+                    protected void updateItem(PaymentDirection item, boolean empty) {
+                        if (item == null || empty) {
+                            setText(null);
+                        } else {
+                            switch (item) {
+                                case INCOMING:
+                                    setText(resourceBundle.getString("data.payment_direction.incoming"));
+                                    break;
+                                case OUTGOING:
+                                    setText(resourceBundle.getString("data.payment_direction.outgoing"));
+                                    break;
+                                default:
+                                    throw new IllegalArgumentException("Unknown payment direction");
+                            }
+                        }
+                    }
+                }
+        );
+        paymentTypeColumn.setCellFactory(column ->
+                new TableCell<Journal, PaymentType>() {
+                    @Override
+                    protected void updateItem(PaymentType item, boolean empty) {
+                        if (item == null || empty) {
+                            setText(null);
+                        } else {
+                            switch (item) {
+                                case BANK_TRANSFER:
+                                    setText(resourceBundle.getString("data.payment_type.bank_transfer"));
+                                    break;
+                                case CASH:
+                                    setText(resourceBundle.getString("data.payment_type.cash"));
+                                    break;
+                                default:
+                                    throw new IllegalArgumentException("Unknown payment type");
+                            }
+                        }
+                    }
+                }
+        );
+        paymentTypeComboBox.setConverter(new StringConverter<PaymentType>(){
+            private Map<PaymentType, String> internalPaymentTypeMapping = new HashMap<PaymentType, String>() {{
+                put(PaymentType.BANK_TRANSFER, resourceBundle.getString("data.payment_type.bank_transfer"));
+                put(PaymentType.CASH, resourceBundle.getString("data.payment_type.cash"));
+            }};
+
+            @Override
+            public String toString(PaymentType paymentType) {
+                return internalPaymentTypeMapping.getOrDefault(paymentType, null);
+            }
+            @Override
+            public PaymentType fromString(String str) {
+                return internalPaymentTypeMapping
+                        .entrySet()
+                        .stream()
+                        .filter(entry -> entry.getValue().equals(str))
+                        .map(Map.Entry::getKey)
+                        .findFirst()
+                        .orElseThrow(IllegalArgumentException::new);
+            }
+        });
 
         // Add change listeners
         journalTableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -194,6 +267,7 @@ public class JournalController {
         fileChooser.setInitialFileName(DEFAULT_EXPORTED_EXCEL_FILE_NAME);
         File exportFilePath = fileChooser.showSaveDialog(null);
         excelWriter.save(exportFilePath.getPath(), Journals.from(observableJournals));
+        infoLabel.setText("Successfully exported journals");
     }
 
     @FXML
@@ -206,6 +280,7 @@ public class JournalController {
         journalRegistry.add(journals.getJournals());
 
         resetControls();
+        infoLabel.setText("Successfully imported journals");
     }
 
     @FXML
@@ -222,7 +297,7 @@ public class JournalController {
         if (selectedIndex >= 0) {
             Journal selectedJournal = observableJournals.get(selectedIndex);
             datePicker.setValue(selectedJournal.getDate());
-            paymentTypeComboBox.setValue(selectedJournal.getPaymentType());
+            paymentTypeComboBox.getSelectionModel().select(selectedJournal.getPaymentType());
             paymentDirectionGroup.selectToggle(
                     paymentDirectionGroup.getToggles()
                             .stream()
@@ -231,7 +306,7 @@ public class JournalController {
                             .orElseThrow(IllegalArgumentException::new));
             invoiceNumberTextField.setText(selectedJournal.getInvoiceNumber());
             amountTextField.setText(ConversionUtils.convert(selectedJournal.getAmount()));
-            reasonTextField.setText(selectedJournal.getReason());
+            commentTextField.setText(selectedJournal.getComment());
             addressTextField.setText(selectedJournal.getAddress());
             categoryComboBox.setValue(selectedJournal.getExpenseType());
 
@@ -247,7 +322,7 @@ public class JournalController {
 
         LocalDate date = datePicker.getValue();
         if (date != null) {
-            filteredJournals = filteredJournals.filtered(journal -> journal.getDate().equals(DateUtils.toString(date)));
+            filteredJournals = filteredJournals.filtered(journal -> journal.getDate().isEqual(date));
         }
 
         PaymentType paymentType = paymentTypeComboBox.getValue();
@@ -274,9 +349,9 @@ public class JournalController {
             filteredJournals = filteredJournals.filtered(journal -> journal.getAmount() == Long.parseLong(amountStr));
         }
 
-        String reason = reasonTextField.getText();
-        if (!ValidationUtils.isNullOrEmpty(reason)) {
-            filteredJournals = filteredJournals.filtered(journal -> journal.getReason().equalsIgnoreCase(reason));
+        String comment = commentTextField.getText();
+        if (!ValidationUtils.isNullOrEmpty(comment)) {
+            filteredJournals = filteredJournals.filtered(journal -> journal.getComment().equalsIgnoreCase(comment));
         }
 
         String address = addressTextField.getText();
@@ -301,7 +376,7 @@ public class JournalController {
                 : null;
         String invoiceNumber = invoiceNumberTextField.getText();
         long amount = Long.parseLong(amountTextField.getText());
-        String reason = reasonTextField.getText();
+        String comment = commentTextField.getText();
         String address = addressTextField.getText();
         String expenseType = categoryComboBox.getValue();
 
@@ -311,7 +386,7 @@ public class JournalController {
                 paymentDirection,
                 invoiceNumber,
                 amount,
-                reason,
+                comment,
                 address,
                 expenseType);
 
@@ -343,7 +418,7 @@ public class JournalController {
         paymentDirectionGroup.getToggles().forEach(toggle -> toggle.setSelected(false));
         invoiceNumberTextField.clear();
         amountTextField.clear();
-        reasonTextField.clear();
+        commentTextField.clear();
         addressTextField.clear();
         categoryComboBox.getSelectionModel().clearSelection();
         categoryComboBox.setItems(

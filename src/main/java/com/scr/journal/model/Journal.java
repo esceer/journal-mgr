@@ -14,7 +14,7 @@ public class Journal implements Comparable<Journal> {
     private SimpleObjectProperty<PaymentDirection> paymentDirection;
     private SimpleStringProperty invoiceNumber;
     private SimpleLongProperty amount;
-    private SimpleStringProperty reason;
+    private SimpleStringProperty comment;
     private SimpleStringProperty address;
     private SimpleStringProperty expenseType;
 
@@ -28,7 +28,7 @@ public class Journal implements Comparable<Journal> {
             PaymentDirection paymentDirection,
             String invoiceNumber,
             long amount,
-            String reason,
+            String comment,
             String address,
             String expenseType) {
         this.date = new SimpleObjectProperty(date);
@@ -36,7 +36,7 @@ public class Journal implements Comparable<Journal> {
         this.paymentDirection = new SimpleObjectProperty<>(paymentDirection);
         this.invoiceNumber = new SimpleStringProperty(invoiceNumber);
         this.amount = new SimpleLongProperty(amount);
-        this.reason = new SimpleStringProperty(reason);
+        this.comment = new SimpleStringProperty(comment);
         this.address = new SimpleStringProperty(address);
         this.expenseType = new SimpleStringProperty(expenseType);
     }
@@ -81,12 +81,12 @@ public class Journal implements Comparable<Journal> {
         this.amount.set(amount);
     }
 
-    public String getReason() {
-        return reason.get();
+    public String getComment() {
+        return comment.get();
     }
 
-    public void setReason(String reason) {
-        this.reason.set(reason);
+    public void setComment(String comment) {
+        this.comment.set(comment);
     }
 
     public String getAddress() {
@@ -114,7 +114,7 @@ public class Journal implements Comparable<Journal> {
                 Objects.equals(paymentType, journal.paymentType) &&
                 Objects.equals(paymentDirection, journal.paymentDirection) &&
                 Objects.equals(invoiceNumber, journal.invoiceNumber) &&
-                Objects.equals(reason, journal.reason) &&
+                Objects.equals(comment, journal.comment) &&
                 Objects.equals(address, journal.address) &&
                 Objects.equals(amount, journal.amount) &&
                 Objects.equals(expenseType, journal.expenseType);
@@ -122,7 +122,7 @@ public class Journal implements Comparable<Journal> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(date, paymentType, paymentDirection, invoiceNumber, amount, reason, address, expenseType);
+        return Objects.hash(date, paymentType, paymentDirection, invoiceNumber, amount, comment, address, expenseType);
     }
 
     @Override
@@ -133,7 +133,7 @@ public class Journal implements Comparable<Journal> {
                 ", paymentDirection=" + paymentDirection +
                 ", invoiceNumber=" + invoiceNumber +
                 ", amount=" + amount +
-                ", reason=" + reason +
+                ", comment=" + comment +
                 ", address=" + address +
                 ", expenseType=" + expenseType +
                 '}';

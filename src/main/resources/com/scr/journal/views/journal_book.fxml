@@ -28,31 +28,31 @@
    <top>
       <MenuBar BorderPane.alignment="CENTER">
         <menus>
-          <Menu mnemonicParsing="false" text="File">
+          <Menu mnemonicParsing="false" text="%menu.file">
             <items>
               <MenuItem mnemonicParsing="true" onAction="#handleExport" text="_Export..." />
                 <MenuItem mnemonicParsing="true" onAction="#handleImport" text="_Import..." />
             </items>
           </Menu>
-          <Menu mnemonicParsing="false" text="Help">
+          <Menu mnemonicParsing="false" text="%menu.help">
             <items>
-                  <Menu mnemonicParsing="false" text="Language">
+                  <Menu mnemonicParsing="false" text="%menu.help.language">
                     <items>
-                      <MenuItem disable="true" mnemonicParsing="false" text="English" />
-                        <MenuItem mnemonicParsing="false" text="Hungarian" />
+                      <MenuItem mnemonicParsing="false" text="%menu.help.language.en" />
+                        <MenuItem disable="true" mnemonicParsing="false" text="%menu.help.language.hu" />
                     </items>
                   </Menu>
                   <SeparatorMenuItem mnemonicParsing="false" />
-              <MenuItem mnemonicParsing="false" onAction="#handleAbout" text="About" />
+              <MenuItem mnemonicParsing="false" onAction="#handleAbout" text="%menu.help.about" />
             </items>
           </Menu>
         </menus>
       </MenuBar>
    </top>
    <center>
-       <SplitPane dividerPositions="0.23" prefHeight="160.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+       <SplitPane dividerPositions="0.23" prefHeight="160.0" prefWidth="225.0" BorderPane.alignment="CENTER">
            <items>
-               <VBox minWidth="180.0" prefHeight="575.0" prefWidth="200.0" spacing="15.0" BorderPane.alignment="CENTER">
+               <VBox minWidth="220.0" prefHeight="575.0" prefWidth="220.0" spacing="15.0" BorderPane.alignment="CENTER">
                    <SplitPane.resizableWithParent>false</SplitPane.resizableWithParent>
                    <children>
                        <Label text="Journal Book">
@@ -60,30 +60,30 @@
                                <Font size="20.0" />
                            </font>
                        </Label>
-                       <DatePicker fx:id="datePicker" prefWidth="200.0" promptText="Date" VBox.vgrow="ALWAYS" />
-                       <Label text="Payment type:">
+                       <DatePicker fx:id="datePicker" prefWidth="220.0" promptText="Date" VBox.vgrow="ALWAYS" />
+                       <Label text="%label.payment_type">
                            <padding>
                                <Insets bottom="-15.0" />
                            </padding>
                        </Label>
-                       <ComboBox fx:id="paymentTypeComboBox" prefWidth="200.0" VBox.vgrow="ALWAYS" />
-                       <HBox prefHeight="100.0" prefWidth="200.0">
+                       <ComboBox fx:id="paymentTypeComboBox" prefWidth="220.0" VBox.vgrow="ALWAYS" />
+                       <HBox prefHeight="100.0" prefWidth="220.0">
                            <fx:define>
                                <ToggleGroup fx:id="paymentDirectionGroup" />
                            </fx:define>
                            <children>
-                               <RadioButton mnemonicParsing="false" text="Incoming" userData="incoming">
+                               <RadioButton mnemonicParsing="false" text="%label.incoming" userData="incoming">
                                    <HBox.margin>
-                                       <Insets left="5.0" />
+                                       <Insets left="12.0" />
                                    </HBox.margin>
                                    <toggleGroup>
                                        <ToggleGroup fx:id="paymentDirectionGroup" />
                                    </toggleGroup>
                                </RadioButton>
-                               <Region maxWidth="45.0" HBox.hgrow="ALWAYS" />
-                               <RadioButton mnemonicParsing="false" text="Outgoing" toggleGroup="$paymentDirectionGroup" userData="outgoing">
+                               <Region maxWidth="50.0" HBox.hgrow="ALWAYS" />
+                               <RadioButton mnemonicParsing="false" text="%label.outgoing" toggleGroup="$paymentDirectionGroup" userData="outgoing">
                                    <HBox.margin>
-                                       <Insets right="5.0" />
+                                       <Insets right="12.0" />
                                    </HBox.margin>
                                </RadioButton>
                            </children>
@@ -91,49 +91,52 @@
                                <Insets bottom="20.0" />
                            </VBox.margin>
                        </HBox>
-                       <Label text="Invoice number:">
+                       <Label text="%label.invoice_number">
                            <VBox.margin>
                                <Insets bottom="-15.0" />
                            </VBox.margin>
                        </Label>
                        <TextField fx:id="invoiceNumberTextField" maxWidth="400.0" VBox.vgrow="ALWAYS" />
-                       <Label text="Amount:">
+                       <Label text="%label.amount">
                            <VBox.margin>
                                <Insets bottom="-15.0" />
                            </VBox.margin>
                        </Label>
-                       <TextField fx:id="amountTextField" layoutX="10.0" layoutY="135.0" maxWidth="200.0" VBox.vgrow="ALWAYS">
+                       <TextField fx:id="amountTextField" layoutX="10.0" layoutY="135.0" maxWidth="400.0" VBox.vgrow="ALWAYS">
                            <VBox.margin>
                                <Insets bottom="20.0" />
                            </VBox.margin></TextField>
-                       <Label text="Reason:">
+                       <Label text="%label.comment">
                            <VBox.margin>
                                <Insets bottom="-15.0" />
                            </VBox.margin>
                        </Label>
-                       <TextField fx:id="reasonTextField" layoutX="10.0" layoutY="85.0" VBox.vgrow="ALWAYS" />
-                       <Label text="Address:">
+                       <TextField fx:id="commentTextField" layoutX="10.0" layoutY="85.0" VBox.vgrow="ALWAYS" />
+                       <Label text="%label.address">
                            <VBox.margin>
                                <Insets bottom="-15.0" />
                            </VBox.margin>
                        </Label>
-                       <TextField fx:id="addressTextField" layoutX="10.0" layoutY="110.0" VBox.vgrow="ALWAYS" />
-                       <Label text="Category:">
+                       <TextField fx:id="addressTextField" layoutX="10.0" layoutY="110.0" VBox.vgrow="ALWAYS">
+                     <VBox.margin>
+                        <Insets bottom="10.0" />
+                     </VBox.margin></TextField>
+                       <Label text="%label.expense_type">
                            <VBox.margin>
                                <Insets bottom="-15.0" />
                            </VBox.margin>
                        </Label>
-                       <ComboBox fx:id="categoryComboBox" editable="true" prefWidth="200.0" />
-                       <Region prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
+                       <ComboBox fx:id="categoryComboBox" editable="true" prefWidth="220.0" />
+                       <Region prefHeight="200.0" prefWidth="250.0" VBox.vgrow="ALWAYS" />
                        <HBox spacing="5.0" VBox.vgrow="ALWAYS">
                            <children>
-                               <Button mnemonicParsing="false" onAction="#handleSaveClicked" text="Save" />
-                               <Button mnemonicParsing="false" onAction="#handleSearchClicked" text="Search" />
+                               <Button mnemonicParsing="false" onAction="#handleSaveClicked" text="%button.save" />
+                               <Button mnemonicParsing="false" onAction="#handleSearchClicked" text="%button.search" />
                                <Region HBox.hgrow="ALWAYS" />
-                               <Button mnemonicParsing="false" onAction="#handleResetClicked" text="Reset" />
+                               <Button mnemonicParsing="false" onAction="#handleResetClicked" text="%button.reset" />
                            </children>
                            <VBox.margin>
-                               <Insets top="20.0" />
+                               <Insets left="-2.0" right="-2.0" top="20.0" />
                            </VBox.margin></HBox>
                    </children>
                    <padding>
@@ -142,42 +145,42 @@
                </VBox>
                <TableView fx:id="journalTableView" editable="true" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                    <columns>
-                       <TableColumn fx:id="dateColumn" text="Date">
+                       <TableColumn fx:id="dateColumn" text="%label.date">
                            <cellValueFactory>
                                <PropertyValueFactory property="date" />
                            </cellValueFactory>
                        </TableColumn>
-                       <TableColumn fx:id="paymentTypeColumn" text="Payment type">
+                       <TableColumn fx:id="paymentTypeColumn" text="%label.payment_type">
                            <cellValueFactory>
                                <PropertyValueFactory property="paymentType" />
                            </cellValueFactory>
                        </TableColumn>
-                       <TableColumn fx:id="paymentDirectionColumn" text="Payment direction">
+                       <TableColumn fx:id="paymentDirectionColumn" text="%label.payment_direction">
                            <cellValueFactory>
                                <PropertyValueFactory property="paymentDirection" />
                            </cellValueFactory>
                        </TableColumn>
-                       <TableColumn fx:id="invoiceNumberColumn" text="Invoice number">
+                       <TableColumn fx:id="invoiceNumberColumn" text="%label.invoice_number">
                            <cellValueFactory>
                                <PropertyValueFactory property="invoiceNumber" />
                            </cellValueFactory>
                        </TableColumn>
-                       <TableColumn fx:id="amountColumn" style="-fx-alignment: CENTER-RIGHT;" text="Amount">
+                       <TableColumn fx:id="amountColumn" style="-fx-alignment: CENTER-RIGHT;" text="%label.amount">
                            <cellValueFactory>
                                <PropertyValueFactory property="amount" />
                            </cellValueFactory>
                        </TableColumn>
-                       <TableColumn fx:id="reasonColumn" text="Reason">
+                       <TableColumn fx:id="commentColumn" text="%label.comment">
                            <cellValueFactory>
-                               <PropertyValueFactory property="reason" />
+                               <PropertyValueFactory property="comment" />
                            </cellValueFactory>
                        </TableColumn>
-                       <TableColumn fx:id="addressColumn" text="Address">
+                       <TableColumn fx:id="addressColumn" text="%label.address">
                            <cellValueFactory>
                                <PropertyValueFactory property="address" />
                            </cellValueFactory>
                        </TableColumn>
-                       <TableColumn fx:id="expenseTypeColumn" text="Expense type">
+                       <TableColumn fx:id="expenseTypeColumn" text="%label.expense_type">
                            <cellValueFactory>
                                <PropertyValueFactory property="expenseType" />
                            </cellValueFactory>
@@ -189,8 +192,8 @@
                    <contextMenu>
                        <ContextMenu>
                            <items>
-                               <MenuItem fx:id="editContextMenu" mnemonicParsing="false" onAction="#handleEditClicked" text="Edit" />
-                               <MenuItem fx:id="deleteContextMenu" mnemonicParsing="false" onAction="#handleDeleteClicked" text="Delete" />
+                               <MenuItem fx:id="editContextMenu" mnemonicParsing="false" onAction="#handleEditClicked" text="%menu.context.edit" />
+                               <MenuItem fx:id="deleteContextMenu" mnemonicParsing="false" onAction="#handleDeleteClicked" text="%menu.context.delete" />
                            </items>
                        </ContextMenu>
                    </contextMenu>
