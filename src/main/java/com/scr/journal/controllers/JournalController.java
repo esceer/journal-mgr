@@ -1,5 +1,6 @@
 package com.scr.journal.controllers;
 
+import com.scr.journal.UILoader;
 import com.scr.journal.dao.CsvLoader;
 import com.scr.journal.dao.ExcelWriter;
 import com.scr.journal.model.Journal;
@@ -16,6 +17,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
@@ -27,10 +29,7 @@ import java.io.File;
 import java.net.URI;
 import java.text.NumberFormat;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class JournalController {
@@ -39,6 +38,11 @@ public class JournalController {
     private static final String DEFAULT_EXPORTED_EXCEL_FILE_NAME = "report.xlsx";
 
     private volatile boolean editingMode = false;
+
+    @FXML
+    private MenuItem languageHuMenu;
+    @FXML
+    private MenuItem languageEnMenu;
 
     @FXML
     private Label infoLabel;
@@ -70,7 +74,7 @@ public class JournalController {
     @FXML
     private TableColumn<Journal, Long> amountColumn;
 
-    private final ResourceBundle resourceBundle;
+    private final UILoader uiLoader;
     private final JournalRegistry journalRegistry;
     private final CsvLoader csvLoader;
     private final ExcelWriter excelWriter;
@@ -79,12 +83,12 @@ public class JournalController {
     private ObservableList<Journal> observableJournals;
 
     public JournalController(
-            ResourceBundle resourceBundle,
+            UILoader uiLoader,
             JournalRegistry journalRegistry,
             CsvLoader csvLoader,
             ExcelWriter excelWriter,
             NumberFormat numberFormat) {
-        this.resourceBundle = resourceBundle;
+        this.uiLoader = uiLoader;
         this.journalRegistry = journalRegistry;
         this.csvLoader = csvLoader;
         this.excelWriter = excelWriter;
@@ -93,6 +97,9 @@ public class JournalController {
 
     @FXML
     public void initialize() {
+        // Get the current resource bundle
+        ResourceBundle resourceBundle = uiLoader.getResourceBundle();
+
         // Set input fields to their default values
         resetControls();
 
@@ -202,6 +209,24 @@ public class JournalController {
             LOGGER.error("Exception on thread: " + thread.getName(), cause);
             infoLabel.setText("Exception: " + ValidationUtils.getRootCause(cause).getMessage());
         });
+    }
+
+    @FXML
+    protected void handleSetHungarianLanguage(ActionEvent event) {
+        uiLoader.setResourceBundle(ResourceBundle.getBundle("com/scr/journal/config/ui_lang", new Locale("hu", "HU")));
+        uiLoader.reload();
+
+        languageHuMenu.setDisable(true);
+        languageEnMenu.setDisable(false);
+    }
+
+    @FXML
+    protected void handleSetEnglishLanguage(ActionEvent event) {
+        uiLoader.setResourceBundle(ResourceBundle.getBundle("com/scr/journal/config/ui_lang", new Locale("en", "EN")));
+        uiLoader.reload();
+
+        languageEnMenu.setDisable(true);
+        languageHuMenu.setDisable(false);
     }
 
     @FXML

@@ -38,8 +38,8 @@
             <items>
                   <Menu mnemonicParsing="false" text="%menu.help.language">
                     <items>
-                      <MenuItem mnemonicParsing="false" text="%menu.help.language.en" />
-                        <MenuItem disable="true" mnemonicParsing="false" text="%menu.help.language.hu" />
+                      <MenuItem fx:id="languageEnMenu" disable="true" mnemonicParsing="false" onAction="#handleSetEnglishLanguage" text="%menu.help.language.en" />
+                        <MenuItem fx:id="languageHuMenu" mnemonicParsing="false" onAction="#handleSetHungarianLanguage" text="%menu.help.language.hu" />
                     </items>
                   </Menu>
                   <SeparatorMenuItem mnemonicParsing="false" />

@@ -1,67 +1,73 @@
 package com.scr.journal.config;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
+import com.google.inject.*;
 import com.google.inject.name.Named;
+import com.scr.journal.UILoader;
+import com.scr.journal.annotations.BackupFilePath;
+import com.scr.journal.annotations.JournalLoader;
+import com.scr.journal.annotations.JournalPersister;
+import com.scr.journal.annotations.JsonFilePath;
+import com.scr.journal.config.provider.FXMLLoaderProvider;
 import com.scr.journal.controllers.JournalController;
-import com.scr.journal.dao.CsvLoader;
-import com.scr.journal.dao.ExcelWriter;
-import com.scr.journal.dao.JsonLoader;
-import com.scr.journal.dao.JsonPersister;
+import com.scr.journal.dao.*;
 import com.scr.journal.model.Journals;
 import com.scr.journal.util.JournalRegistry;
+import javafx.fxml.FXMLLoader;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.NumberFormat;
-import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class JournalModule extends AbstractModule {
 
     @Override
     protected void configure() {
+        install(new SettingsModule());
         install(new PropertyModule());
+
+        bind(FXMLLoader.class).toProvider(FXMLLoaderProvider.class);
+        bind(DataBackupHandler.class)
+                .annotatedWith(JournalPersister.class)
+                .to(Key.get(new TypeLiteral<JsonPersister<Journals>>() {}, JournalPersister.class));
+        bind(Key.get(new TypeLiteral<DataPersister<Journals>>() {}, JournalPersister.class))
+                .to(Key.get(new TypeLiteral<JsonPersister<Journals>>() {}, JournalPersister.class));
+        bind(Key.get(new TypeLiteral<DataLoader<Journals>>() {}, JournalLoader.class))
+                .to(Key.get(new TypeLiteral<JsonLoader<Journals>>() {}, JournalLoader.class));
     }
 
     @Provides
     @Singleton
-    public Locale getLocale(
-            @Named("system.locale.language") String localeLanguage,
-            @Named("system.locale.country") String localeCountry) {
-        return new Locale(localeLanguage, localeCountry);
+    public UILoader createUILoader(FXMLLoader fxmlLoader, ResourceBundle resourceBundle) {
+        fxmlLoader.setResources(resourceBundle);
+        return new UILoader(fxmlLoader);
     }
 
     @Provides
-    @Singleton
-    public ResourceBundle getResourceBundle(Locale locale) {
-        return ResourceBundle.getBundle("com/scr/journal/config/ui_lang", locale);
-    }
-
-    @Provides
-    @Named("json_file_path")
+    @JsonFilePath
     public Path createJsonFilePath(@Named("json.file.path") String jsonFilePath) {
         return Paths.get(jsonFilePath);
     }
 
     @Provides
-    @Named("backup_file_path")
+    @BackupFilePath
     public Path createBackupFilePath(@Named("backup.file.path") String jsonFilePath) {
         return Paths.get(jsonFilePath);
     }
 
     @Provides
     @Singleton
-    public JsonLoader<Journals> createJournalLoader(@Named("json_file_path")Path filePath) {
+    @JournalLoader
+    public JsonLoader<Journals> createJournalLoader(@JsonFilePath Path filePath) {
         return new JsonLoader<>(filePath, Journals.class);
     }
 
     @Provides
     @Singleton
+    @JournalPersister
     public JsonPersister<Journals> createJournalPersister(
-            @Named("json_file_path") Path filePath,
-            @Named("backup_file_path") Path backupPath) {
+            @JsonFilePath Path filePath,
+            @BackupFilePath Path backupPath) {
         return new JsonPersister<>(filePath, backupPath);
     }
 
@@ -74,28 +80,25 @@ public class JournalModule extends AbstractModule {
     @Provides
     @Singleton
     public JournalController createJournalController(
-            ResourceBundle resourceBundle,
+            UILoader uiLoader,
             JournalRegistry journalRegistry,
             CsvLoader csvLoader,
             ExcelWriter excelWriter,
             NumberFormat numberFormat) {
-        return new JournalController(resourceBundle, journalRegistry, csvLoader, excelWriter, numberFormat);
+        return new JournalController(
+                uiLoader,
+                journalRegistry,
+                csvLoader,
+                excelWriter,
+                numberFormat);
     }
 
     @Provides
     @Singleton
     public JournalRegistry createJournalRegistry(
-            JsonLoader<Journals> journalLoader,
-            JsonPersister<Journals> journalPersister) {
+            @JournalLoader DataLoader<Journals> journalLoader,
+            @JournalPersister DataPersister<Journals> journalPersister) {
         return new JournalRegistry(journalLoader, journalPersister);
-    }
-
-    @Provides
-    @Singleton
-    public NumberFormat getNumberFormat(
-            @Named("system.number_format.language") String numberFormatLanguage,
-            @Named("system.number_format.country") String numberFormatCountry) {
-        return NumberFormat.getCurrencyInstance(new Locale(numberFormatLanguage, numberFormatCountry));
     }
 
     @Provides
