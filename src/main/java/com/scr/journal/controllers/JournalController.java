@@ -411,6 +411,7 @@ public class JournalController {
         reloadJournals();
         cancelEditingMode();
 
+        journalTableView.getSelectionModel().clearSelection();
         journalTableView.setItems(observableJournals);
         datePicker.setValue(null);
         paymentTypeComboBox.setItems(FXCollections.observableArrayList(PaymentType.values()));
