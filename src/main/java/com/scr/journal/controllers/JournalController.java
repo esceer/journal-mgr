@@ -7,10 +7,7 @@ import com.scr.journal.model.Journal;
 import com.scr.journal.model.Journals;
 import com.scr.journal.model.PaymentDirection;
 import com.scr.journal.model.PaymentType;
-import com.scr.journal.util.AlertBuilder;
-import com.scr.journal.util.ConversionUtils;
-import com.scr.journal.util.JournalRegistry;
-import com.scr.journal.util.ValidationUtils;
+import com.scr.journal.util.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -215,7 +212,8 @@ public class JournalController {
 
     @FXML
     protected void handleSetHungarianLanguage(ActionEvent event) {
-        uiLoader.setResourceBundle(ResourceBundle.getBundle("com/scr/journal/config/ui_lang", new Locale("hu", "HU")));
+        SettingsRegistry.save(new SettingsRegistry.Settings("hu", "HU"));
+        uiLoader.setResourceBundle(SettingsRegistry.getResourceBundle());
         uiLoader.reload();
 
         languageHuMenu.setDisable(true);
@@ -226,7 +224,8 @@ public class JournalController {
 
     @FXML
     protected void handleSetEnglishLanguage(ActionEvent event) {
-        uiLoader.setResourceBundle(ResourceBundle.getBundle("com/scr/journal/config/ui_lang", new Locale("en", "EN")));
+        SettingsRegistry.save(new SettingsRegistry.Settings("en", "EN"));
+        uiLoader.setResourceBundle(SettingsRegistry.getResourceBundle());
         uiLoader.reload();
 
         languageEnMenu.setDisable(true);
@@ -477,6 +476,10 @@ public class JournalController {
                                 .collect(Collectors.toList()))
         );
         categoryComboBox.setValue(null);
+
+        String currentLanguage = resourceBundle.getLocale().getLanguage();
+        languageHuMenu.setDisable(!currentLanguage.equalsIgnoreCase("en"));
+        languageEnMenu.setDisable(!currentLanguage.equalsIgnoreCase("hu"));
     }
 
     private void reloadJournals() {

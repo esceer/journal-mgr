@@ -9,18 +9,18 @@ import com.scr.journal.controllers.JournalController;
 import com.scr.journal.dao.*;
 import com.scr.journal.model.Journals;
 import com.scr.journal.util.JournalRegistry;
+import com.scr.journal.util.SettingsRegistry;
 import javafx.fxml.FXMLLoader;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.NumberFormat;
-import java.util.ResourceBundle;
+import java.util.Locale;
 
 public class JournalModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        install(new SettingsModule());
         install(new PropertyModule());
 
         bind(FXMLLoader.class).toProvider(FXMLLoaderProvider.class);
@@ -37,8 +37,8 @@ public class JournalModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public UILoader createUILoader(FXMLLoader fxmlLoader, ResourceBundle resourceBundle) {
-        fxmlLoader.setResources(resourceBundle);
+    public UILoader createUILoader(FXMLLoader fxmlLoader) {
+        fxmlLoader.setResources(SettingsRegistry.getResourceBundle());
         return new UILoader(fxmlLoader);
     }
 
@@ -110,8 +110,16 @@ public class JournalModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public ExcelWriter createExcelWriter(ResourceBundle resourceBundle) {
-        return new ExcelWriter(resourceBundle);
+    public ExcelWriter createExcelWriter() {
+        return new ExcelWriter(SettingsRegistry.getResourceBundle());
+    }
+
+    @Provides
+    @Singleton
+    public NumberFormat getNumberFormat(
+            @Named("system.number_format.language") String numberFormatLanguage,
+            @Named("system.number_format.country") String numberFormatCountry) {
+        return NumberFormat.getCurrencyInstance(new Locale(numberFormatLanguage, numberFormatCountry));
     }
 
 }
