@@ -194,7 +194,7 @@ public class JournalController {
         // Add change listeners
         journalTableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (editingMode) {
-                mirrorEditFields();
+                mirrorFields();
             }
         });
         amountTextField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -269,7 +269,16 @@ public class JournalController {
 
     @FXML
     protected void handleEditClicked(ActionEvent event) {
-        mirrorEditFields();
+        mirrorFields();
+        infoLabel.setText("Editing journal...");
+        enterEditingMode();
+    }
+
+    @FXML
+    protected void handleCopyClicked(ActionEvent event) {
+        mirrorFields();
+        infoLabel.setText("Copying journal...");
+        cancelEditingMode();
     }
 
     @FXML
@@ -337,7 +346,7 @@ public class JournalController {
         }
     }
 
-    private void mirrorEditFields() {
+    private void mirrorFields() {
         int selectedIndex = journalTableView.getSelectionModel().getSelectedIndex();
         if (selectedIndex >= 0) {
             Journal selectedJournal = observableJournals.get(selectedIndex);
@@ -354,11 +363,8 @@ public class JournalController {
             commentTextField.setText(selectedJournal.getComment());
             addressTextField.setText(selectedJournal.getAddress());
             categoryComboBox.setValue(selectedJournal.getExpenseType());
-
-            infoLabel.setText("Editing journal...");
-            enterEditingMode();
         } else {
-            throw new IllegalArgumentException("Failed to edit journal as no journal was selected");
+            throw new IllegalArgumentException("Failed to mirror journal as no journal was selected");
         }
     }
 

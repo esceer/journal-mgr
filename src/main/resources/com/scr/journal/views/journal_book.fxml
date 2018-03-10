@@ -195,6 +195,8 @@
                        <ContextMenu>
                            <items>
                                <MenuItem fx:id="editContextMenu" mnemonicParsing="false" onAction="#handleEditClicked" text="%menu.context.edit" />
+                        <MenuItem fx:id="copyContextMenu" mnemonicParsing="false" onAction="#handleCopyClicked" text="%menu.context.copy" />
+                        <SeparatorMenuItem mnemonicParsing="false" />
                                <MenuItem fx:id="deleteContextMenu" mnemonicParsing="false" onAction="#handleDeleteClicked" text="%menu.context.delete" />
                            </items>
                        </ContextMenu>
