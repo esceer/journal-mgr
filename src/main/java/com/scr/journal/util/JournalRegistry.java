@@ -25,7 +25,10 @@ public class JournalRegistry {
     }
 
     private void setJournals(Journals journals) {
-        this.journals = new ArrayList<>(journals.getJournals());
+        this.journals = new ArrayList<>();
+        if (journals != null) {
+            this.journals.addAll(journals.getJournals());
+        }
     }
 
     public Collection<Journal> getJournals() {

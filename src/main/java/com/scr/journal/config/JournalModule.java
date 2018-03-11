@@ -110,12 +110,6 @@ public class JournalModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public ExcelWriter createExcelWriter() {
-        return new ExcelWriter(SettingsRegistry.getResourceBundle());
-    }
-
-    @Provides
-    @Singleton
     public NumberFormat getNumberFormat(
             @Named("system.number_format.language") String numberFormatLanguage,
             @Named("system.number_format.country") String numberFormatCountry) {

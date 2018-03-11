@@ -320,8 +320,10 @@ public class JournalController {
         fileChooser.setTitle("Save file");
         fileChooser.setInitialFileName(DEFAULT_EXPORTED_EXCEL_FILE_NAME);
         File exportFilePath = fileChooser.showSaveDialog(null);
-        excelWriter.save(exportFilePath.getPath(), Journals.from(observableJournals));
-        infoLabel.setText("Successfully exported journals");
+        if (exportFilePath != null) {
+            excelWriter.save(exportFilePath.getPath(), Journals.from(observableJournals), SettingsRegistry.getResourceBundle());
+            infoLabel.setText("Successfully exported journals");
+        }
     }
 
     @FXML
@@ -330,11 +332,13 @@ public class JournalController {
         fileChooser.setTitle("Load file");
         File importFilePath = fileChooser.showOpenDialog(null);
 
-        Journals journals = csvLoader.load(importFilePath.getPath());
-        journalRegistry.add(journals.getJournals());
+        if (importFilePath != null) {
+            Journals journals = csvLoader.load(importFilePath.getPath());
+            journalRegistry.add(journals.getJournals());
 
-        resetControls();
-        infoLabel.setText("Successfully imported journals");
+            resetControls();
+            infoLabel.setText("Successfully imported journals");
+        }
     }
 
     @FXML

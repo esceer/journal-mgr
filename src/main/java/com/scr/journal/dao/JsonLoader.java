@@ -21,10 +21,14 @@ public class JsonLoader<T> implements DataLoader<T> {
 
     @Override
     public T load() {
-        try (InputStream inputStream = Files.newInputStream(filePath, StandardOpenOption.READ)) {
-            return JsonConverter.readValue(inputStream, valueType);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        if (!Files.exists(filePath)) {
+            return null;
+        } else {
+            try (InputStream inputStream = Files.newInputStream(filePath, StandardOpenOption.READ)) {
+                return JsonConverter.readValue(inputStream, valueType);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
     }
 

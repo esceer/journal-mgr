@@ -1,5 +1,6 @@
 journals.json
 journals.bck
+settings.json
 
 build
 .gradle

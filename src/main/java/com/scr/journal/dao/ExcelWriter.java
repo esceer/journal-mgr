@@ -2,6 +2,8 @@ package com.scr.journal.dao;
 
 import com.scr.journal.model.Journal;
 import com.scr.journal.model.Journals;
+import com.scr.journal.model.PaymentDirection;
+import com.scr.journal.model.PaymentType;
 import com.scr.journal.util.ConversionUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -15,18 +17,15 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class ExcelWriter {
 
-    private final ResourceBundle resourceBundle;
-
-    public ExcelWriter(ResourceBundle resourceBundle) {
-        this.resourceBundle = resourceBundle;
-    }
-
-    public void save(String exportFilePath, Journals data) {
+    public void save(String exportFilePath, Journals data, ResourceBundle resourceBundle) {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("2018");
 
@@ -41,11 +40,20 @@ public class ExcelWriter {
                 .addCell(resourceBundle.getString("label.address"))
                 .addCell(resourceBundle.getString("label.expense_type"));
 
+        Map<PaymentType, String> internalPaymentTypeMapping =new HashMap<PaymentType, String>() {{
+            put(PaymentType.BANK_TRANSFER, resourceBundle.getString("data.payment_type.bank_transfer"));
+            put(PaymentType.CASH, resourceBundle.getString("data.payment_type.cash"));
+        }};
+        Map<PaymentDirection, String> internalPaymentDirectionMapping = new HashMap<PaymentDirection, String>() {{
+            put(PaymentDirection.INCOMING, resourceBundle.getString("data.payment_direction.incoming"));
+            put(PaymentDirection.OUTGOING, resourceBundle.getString("data.payment_direction.outgoing"));
+        }};
+
         for (Journal journal : data.getJournals()) {
             rowBuilder.addRow()
                     .addCell(journal::getDate)
-                    .addCell(journal::getPaymentType)
-                    .addCell(journal::getPaymentDirection)
+                    .addCell(journal::getPaymentType, internalPaymentTypeMapping::get)
+                    .addCell(journal::getPaymentDirection, internalPaymentDirectionMapping::get)
                     .addCell(journal::getInvoiceNumber)
                     .addCell(journal::getAmount)
                     .addCell(journal::getComment)
@@ -81,7 +89,12 @@ public class ExcelWriter {
         }
 
         public RowBuilder addCell(Supplier<?> getter) {
-            return addCell(ConversionUtils.convert(getter.get()));
+            return addCell(getter, ConversionUtils::convert);
+        }
+
+        public <T> RowBuilder addCell(Supplier<T> getter, Function<T, String> converter) {
+            T value = getter.get();
+            return addCell(converter.apply(value));
         }
 
         public RowBuilder addCell(String strValue) {

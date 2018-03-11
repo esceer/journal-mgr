@@ -1,9 +1,12 @@
+// Build
+
 apply plugin: 'java'
 apply plugin: 'application'
 
 version = '1.0'
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
@@ -14,11 +17,34 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
     compile 'com.fasterxml.jackson.module:jackson-module-parameter-names:2.9.4'
     compile 'org.apache.poi:poi-ooxml:3.17'
-
 }
+
 
 mainClassName = "com.scr.journal.Main"
 
 compileJava {
     options.compilerArgs += ["-parameters"]
+}
+
+
+// Release
+
+buildscript {
+    dependencies {
+        classpath group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2'
+    }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'javafx-gradle-plugin'
+
+jfx {
+    // minimal requirement for jfxJar-task
+    mainClass = 'com.scr.journal.Main'
+
+    // minimal requirement for jfxNative-task
+    vendor = 'esceer'
 }
