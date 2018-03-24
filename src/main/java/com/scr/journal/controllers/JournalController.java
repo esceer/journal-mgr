@@ -26,6 +26,7 @@ import java.io.File;
 import java.net.URI;
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -171,7 +172,7 @@ public class JournalController {
                     }
                 }
         );
-        paymentTypeComboBox.setConverter(new StringConverter<PaymentType>(){
+        paymentTypeComboBox.setConverter(new StringConverter<PaymentType>() {
             private Map<PaymentType, String> internalPaymentTypeMapping = new HashMap<PaymentType, String>() {{
                 put(PaymentType.BANK_TRANSFER, resourceBundle.getString("data.payment_type.bank_transfer"));
                 put(PaymentType.CASH, resourceBundle.getString("data.payment_type.cash"));
@@ -181,6 +182,7 @@ public class JournalController {
             public String toString(PaymentType paymentType) {
                 return internalPaymentTypeMapping.getOrDefault(paymentType, null);
             }
+
             @Override
             public PaymentType fromString(String str) {
                 return internalPaymentTypeMapping
@@ -400,7 +402,18 @@ public class JournalController {
 
         LocalDate date = datePicker.getValue();
         if (date != null) {
-            filteredJournals = filteredJournals.filtered(journal -> journal.getDate().isEqual(date));
+            switch (SettingsRegistry.get().getSearchDateFormat()) {
+                case FULL:
+                    filteredJournals = filteredJournals.filtered(journal ->
+                            journal.getDate().isEqual(date));
+                    break;
+                case SHORT:
+                    filteredJournals = filteredJournals.filtered(journal ->
+                            YearMonth.from(journal.getDate()).equals(YearMonth.from(date)));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown SearchDateFormat");
+            }
         }
 
         PaymentType paymentType = paymentTypeComboBox.getValue();
