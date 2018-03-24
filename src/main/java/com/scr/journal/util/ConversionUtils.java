@@ -22,6 +22,7 @@ public class ConversionUtils {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T convert(String str, Class<T> targetType) {
         if (str == null) {
             return null;
@@ -36,6 +37,8 @@ public class ConversionUtils {
             return (T) PaymentType.tryParse(str);
         } else if (targetType.isAssignableFrom(PaymentDirection.class)) {
             return (T) PaymentDirection.tryParse(str);
+        } else if (targetType.isAssignableFrom(SearchDateFormat.class)) {
+            return (T) SearchDateFormat.parse(str);
         }
         throw new IllegalArgumentException("Cannot convert '" + str + "' to '" + targetType);
     }

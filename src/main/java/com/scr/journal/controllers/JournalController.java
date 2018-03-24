@@ -15,7 +15,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
@@ -38,9 +37,13 @@ public class JournalController {
     private volatile boolean editingMode = false;
 
     @FXML
-    private MenuItem languageHuMenu;
+    private RadioMenuItem languageHuMenu;
     @FXML
-    private MenuItem languageEnMenu;
+    private RadioMenuItem languageEnMenu;
+    @FXML
+    private RadioMenuItem searchFullDateFormatMenu;
+    @FXML
+    private RadioMenuItem searchShortDateFormatMenu;
 
     @FXML
     private Label infoLabel;
@@ -78,7 +81,6 @@ public class JournalController {
     private final ExcelWriter excelWriter;
     private final NumberFormat numberFormat;
 
-    private ResourceBundle resourceBundle;
     private ObservableList<Journal> observableJournals;
 
     public JournalController(
@@ -97,7 +99,7 @@ public class JournalController {
     @FXML
     public void initialize() {
         // Get the current resource bundle
-        resourceBundle = uiLoader.getResourceBundle();
+        ResourceBundle resourceBundle = uiLoader.getResourceBundle();
 
         // Set input fields to their default values
         resetControls();
@@ -212,30 +214,51 @@ public class JournalController {
 
     @FXML
     protected void handleSetHungarianLanguage(ActionEvent event) {
-        SettingsRegistry.save(new SettingsRegistry.Settings("hu", "HU"));
-        uiLoader.setResourceBundle(SettingsRegistry.getResourceBundle());
+        SettingsRegistry.get().setLocale("hu", "HU");
+        uiLoader.setResourceBundle(SettingsRegistry.get().getResourceBundle());
         uiLoader.reload();
 
-        languageHuMenu.setDisable(true);
-        languageEnMenu.setDisable(false);
+        flipRadioMenu(languageHuMenu, true);
+        flipRadioMenu(languageEnMenu, false);
 
         infoLabel.setText("Language set to Hungarian");
     }
 
     @FXML
     protected void handleSetEnglishLanguage(ActionEvent event) {
-        SettingsRegistry.save(new SettingsRegistry.Settings("en", "EN"));
-        uiLoader.setResourceBundle(SettingsRegistry.getResourceBundle());
+        SettingsRegistry.get().setLocale("en", "EN");
+        uiLoader.setResourceBundle(SettingsRegistry.get().getResourceBundle());
         uiLoader.reload();
 
-        languageEnMenu.setDisable(true);
-        languageHuMenu.setDisable(false);
+        flipRadioMenu(languageEnMenu, true);
+        flipRadioMenu(languageHuMenu, false);
 
         infoLabel.setText("Language set to English");
     }
 
     @FXML
+    protected void handleSetFullSearchDateFormat(ActionEvent event) {
+        SettingsRegistry.get().setSearchDateFormat(SearchDateFormat.FULL);
+
+        flipRadioMenu(searchFullDateFormatMenu, true);
+        flipRadioMenu(searchShortDateFormatMenu, false);
+
+        infoLabel.setText("Search date format set to 'full'");
+    }
+
+    @FXML
+    protected void handleSetShortSearchDateFormat(ActionEvent event) {
+        SettingsRegistry.get().setSearchDateFormat(SearchDateFormat.SHORT);
+
+        flipRadioMenu(searchShortDateFormatMenu, true);
+        flipRadioMenu(searchFullDateFormatMenu, false);
+
+        infoLabel.setText("Search date format set to 'short'");
+    }
+
+    @FXML
     protected void handleLoadBackup(ActionEvent event) {
+        ResourceBundle resourceBundle = uiLoader.getResourceBundle();
         Optional<ButtonType> userResponse = AlertBuilder
                 .alert(Alert.AlertType.CONFIRMATION)
                 .withTitle(resourceBundle.getString("dialog.backup.title"))
@@ -321,7 +344,7 @@ public class JournalController {
         fileChooser.setInitialFileName(DEFAULT_EXPORTED_EXCEL_FILE_NAME);
         File exportFilePath = fileChooser.showSaveDialog(null);
         if (exportFilePath != null) {
-            excelWriter.save(exportFilePath.getPath(), Journals.from(observableJournals), SettingsRegistry.getResourceBundle());
+            excelWriter.save(exportFilePath.getPath(), Journals.from(observableJournals), SettingsRegistry.get().getResourceBundle());
             infoLabel.setText("Successfully exported journals");
         }
     }
@@ -487,9 +510,13 @@ public class JournalController {
         );
         categoryComboBox.setValue(null);
 
-        String currentLanguage = resourceBundle.getLocale().getLanguage();
-        languageHuMenu.setDisable(!currentLanguage.equalsIgnoreCase("en"));
-        languageEnMenu.setDisable(!currentLanguage.equalsIgnoreCase("hu"));
+        String currentLanguage = uiLoader.getResourceBundle().getLocale().getLanguage();
+        flipRadioMenu(languageEnMenu, currentLanguage.equalsIgnoreCase("en"));
+        flipRadioMenu(languageHuMenu, currentLanguage.equalsIgnoreCase("hu"));
+
+        SearchDateFormat searchDateFormat = SettingsRegistry.get().getSearchDateFormat();
+        flipRadioMenu(searchFullDateFormatMenu, SearchDateFormat.FULL == searchDateFormat);
+        flipRadioMenu(searchShortDateFormatMenu, SearchDateFormat.SHORT == searchDateFormat);
     }
 
     private void reloadJournals() {
@@ -502,6 +529,11 @@ public class JournalController {
 
     private void cancelEditingMode() {
         editingMode = false;
+    }
+
+    private static void flipRadioMenu(RadioMenuItem radioMenuItem, boolean select) {
+//        radioMenuItem.setDisable(select);
+        radioMenuItem.setSelected(select);
     }
 
 }

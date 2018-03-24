@@ -10,6 +10,7 @@
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.RadioMenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
@@ -33,10 +34,28 @@
               <MenuItem mnemonicParsing="true" onAction="#handleExport" text="_Export..." />
                 <MenuItem mnemonicParsing="true" onAction="#handleImport" text="_Import..." />
                   <SeparatorMenuItem mnemonicParsing="false" />
-                  <Menu mnemonicParsing="false" text="%menu.file.language">
+                  <Menu mnemonicParsing="false" text="Beallitasok">
                     <items>
-                      <MenuItem fx:id="languageEnMenu" mnemonicParsing="false" onAction="#handleSetEnglishLanguage" text="%menu.file.language.en" />
-                        <MenuItem fx:id="languageHuMenu" mnemonicParsing="false" onAction="#handleSetHungarianLanguage" text="%menu.file.language.hu" />
+                        <Menu mnemonicParsing="false" text="%menu.file.settings.language">
+                          <items>
+                              <RadioMenuItem fx:id="languageEnMenu" mnemonicParsing="false" onAction="#handleSetEnglishLanguage" text="%menu.file.settings.language.en">
+                                 <toggleGroup>
+                                    <ToggleGroup fx:id="languageSelectionGroup" />
+                                 </toggleGroup>
+                              </RadioMenuItem>
+                              <RadioMenuItem fx:id="languageHuMenu" mnemonicParsing="false" onAction="#handleSetHungarianLanguage" text="%menu.file.settings.language.hu" toggleGroup="$languageSelectionGroup" />
+                          </items>
+                        </Menu>
+                        <Menu mnemonicParsing="false" text="%menu.file.settings.search_date_format">
+                           <items>
+                              <RadioMenuItem fx:id="searchFullDateFormatMenu" mnemonicParsing="false" onAction="#handleSetFullSearchDateFormat" text="%menu.file.settings.search_date_format.full">
+                                 <toggleGroup>
+                                    <ToggleGroup fx:id="searchDateFormatGroup" />
+                                 </toggleGroup>
+                              </RadioMenuItem>
+                              <RadioMenuItem fx:id="searchShortDateFormatMenu" mnemonicParsing="false" onAction="#handleSetShortSearchDateFormat" text="%menu.file.settings.search_date_format.short" toggleGroup="$searchDateFormatGroup" />
+                           </items>
+                        </Menu>
                     </items>
                   </Menu>
             </items>
