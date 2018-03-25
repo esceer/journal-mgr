@@ -4,6 +4,7 @@ import com.scr.journal.model.PaymentDirection;
 import com.scr.journal.model.PaymentType;
 
 import java.time.LocalDate;
+import java.time.Year;
 
 public class ConversionUtils {
 
@@ -33,6 +34,8 @@ public class ConversionUtils {
             return (T) Double.valueOf(str);
         } else if (targetType.isAssignableFrom(LocalDate.class)) {
             return (T) DateUtils.parse(str);
+        } else if (targetType.isAssignableFrom(Year.class)) {
+            return (T) Year.parse(str);
         } else if (targetType.isAssignableFrom(PaymentType.class)) {
             return (T) PaymentType.tryParse(str);
         } else if (targetType.isAssignableFrom(PaymentDirection.class)) {

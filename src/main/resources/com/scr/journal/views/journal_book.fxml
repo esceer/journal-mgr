@@ -13,6 +13,8 @@
 <?import javafx.scene.control.RadioMenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
@@ -164,63 +166,78 @@
                        <Insets bottom="10.0" left="10.0" right="10.0" top="20.0" />
                    </padding>
                </VBox>
-               <TableView fx:id="journalTableView" editable="true" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-                   <columns>
-                       <TableColumn fx:id="dateColumn" text="%label.date">
-                           <cellValueFactory>
-                               <PropertyValueFactory property="date" />
-                           </cellValueFactory>
-                       </TableColumn>
-                       <TableColumn fx:id="paymentTypeColumn" text="%label.payment_type">
-                           <cellValueFactory>
-                               <PropertyValueFactory property="paymentType" />
-                           </cellValueFactory>
-                       </TableColumn>
-                       <TableColumn fx:id="paymentDirectionColumn" text="%label.payment_direction">
-                           <cellValueFactory>
-                               <PropertyValueFactory property="paymentDirection" />
-                           </cellValueFactory>
-                       </TableColumn>
-                       <TableColumn fx:id="invoiceNumberColumn" text="%label.invoice_number">
-                           <cellValueFactory>
-                               <PropertyValueFactory property="invoiceNumber" />
-                           </cellValueFactory>
-                       </TableColumn>
-                       <TableColumn fx:id="amountColumn" style="-fx-alignment: CENTER-RIGHT;" text="%label.amount">
-                           <cellValueFactory>
-                               <PropertyValueFactory property="amount" />
-                           </cellValueFactory>
-                       </TableColumn>
-                       <TableColumn fx:id="commentColumn" text="%label.comment">
-                           <cellValueFactory>
-                               <PropertyValueFactory property="comment" />
-                           </cellValueFactory>
-                       </TableColumn>
-                       <TableColumn fx:id="addressColumn" text="%label.address">
-                           <cellValueFactory>
-                               <PropertyValueFactory property="address" />
-                           </cellValueFactory>
-                       </TableColumn>
-                       <TableColumn fx:id="expenseTypeColumn" text="%label.expense_type">
-                           <cellValueFactory>
-                               <PropertyValueFactory property="expenseType" />
-                           </cellValueFactory>
-                       </TableColumn>
-                   </columns>
-                   <columnResizePolicy>
-                       <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                   </columnResizePolicy>
-                   <contextMenu>
-                       <ContextMenu>
-                           <items>
-                               <MenuItem fx:id="editContextMenu" mnemonicParsing="false" onAction="#handleEditClicked" text="%menu.context.edit" />
-                        <MenuItem fx:id="copyContextMenu" mnemonicParsing="false" onAction="#handleCopyClicked" text="%menu.context.copy" />
-                        <SeparatorMenuItem mnemonicParsing="false" />
-                               <MenuItem fx:id="deleteContextMenu" mnemonicParsing="false" onAction="#handleDeleteClicked" text="%menu.context.delete" />
-                           </items>
-                       </ContextMenu>
-                   </contextMenu>
-               </TableView>
+            <TabPane fx:id="journalTabPane" tabClosingPolicy="UNAVAILABLE">
+               <tabs>
+                  <Tab closable="false">
+                     <content>
+                        <BorderPane fx:id="journalTabBorderPane" prefHeight="200.0" prefWidth="200.0">
+                           <center>
+                                 <TableView fx:id="journalTableView" BorderPane.alignment="CENTER">
+                                     <columns>
+                                         <TableColumn fx:id="dateColumn" text="%label.date">
+                                             <cellValueFactory>
+                                                 <PropertyValueFactory property="date" />
+                                             </cellValueFactory>
+                                         </TableColumn>
+                                         <TableColumn fx:id="paymentTypeColumn" text="%label.payment_type">
+                                             <cellValueFactory>
+                                                 <PropertyValueFactory property="paymentType" />
+                                             </cellValueFactory>
+                                         </TableColumn>
+                                         <TableColumn fx:id="paymentDirectionColumn" text="%label.payment_direction">
+                                             <cellValueFactory>
+                                                 <PropertyValueFactory property="paymentDirection" />
+                                             </cellValueFactory>
+                                         </TableColumn>
+                                         <TableColumn fx:id="invoiceNumberColumn" text="%label.invoice_number">
+                                             <cellValueFactory>
+                                                 <PropertyValueFactory property="invoiceNumber" />
+                                             </cellValueFactory>
+                                         </TableColumn>
+                                         <TableColumn fx:id="amountColumn" style="-fx-alignment: CENTER-RIGHT;" text="%label.amount">
+                                             <cellValueFactory>
+                                                 <PropertyValueFactory property="amount" />
+                                             </cellValueFactory>
+                                         </TableColumn>
+                                         <TableColumn fx:id="commentColumn" text="%label.comment">
+                                             <cellValueFactory>
+                                                 <PropertyValueFactory property="comment" />
+                                             </cellValueFactory>
+                                         </TableColumn>
+                                         <TableColumn fx:id="addressColumn" text="%label.address">
+                                             <cellValueFactory>
+                                                 <PropertyValueFactory property="address" />
+                                             </cellValueFactory>
+                                         </TableColumn>
+                                         <TableColumn fx:id="expenseTypeColumn" text="%label.expense_type">
+                                             <cellValueFactory>
+                                                 <PropertyValueFactory property="expenseType" />
+                                             </cellValueFactory>
+                                         </TableColumn>
+                                     </columns>
+                                     <columnResizePolicy>
+                                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                     </columnResizePolicy>
+                                     <contextMenu>
+                                         <ContextMenu>
+                                             <items>
+                                                 <MenuItem fx:id="editContextMenu" mnemonicParsing="false" onAction="#handleEditClicked" text="%menu.context.edit" />
+                                          <MenuItem fx:id="copyContextMenu" mnemonicParsing="false" onAction="#handleCopyClicked" text="%menu.context.copy" />
+                                          <SeparatorMenuItem mnemonicParsing="false" />
+                                                 <MenuItem fx:id="deleteContextMenu" mnemonicParsing="false" onAction="#handleDeleteClicked" text="%menu.context.delete" />
+                                             </items>
+                                         </ContextMenu>
+                                     </contextMenu>
+                                 </TableView>
+                           </center>
+                        </BorderPane>
+                     </content>
+                  </Tab>
+               </tabs>
+               <padding>
+                  <Insets left="-2.0" top="-5.0" />
+               </padding>
+            </TabPane>
            </items>
        </SplitPane>
    </center>

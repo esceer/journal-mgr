@@ -16,6 +16,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
 import org.slf4j.Logger;
@@ -26,8 +27,10 @@ import java.io.File;
 import java.net.URI;
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.time.Year;
 import java.time.YearMonth;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class JournalController {
@@ -65,6 +68,10 @@ public class JournalController {
     @FXML
     private ComboBox<String> categoryComboBox;
 
+    @FXML
+    private TabPane journalTabPane;
+    @FXML
+    private BorderPane journalTabBorderPane;
     @FXML
     private TableView<Journal> journalTableView;
     @FXML
@@ -196,6 +203,10 @@ public class JournalController {
         });
 
         // Add change listeners
+        journalTabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            selectYear(ConversionUtils.convert(newValue.getId(), Year.class));
+            reloadJournals();
+        });
         journalTableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (editingMode) {
                 mirrorFields();
@@ -499,11 +510,12 @@ public class JournalController {
     }
 
     private void resetControls() {
+        rebuildJournalTabs();
+
         reloadJournals();
         cancelEditingMode();
 
         journalTableView.getSelectionModel().clearSelection();
-        journalTableView.setItems(observableJournals);
         datePicker.setValue(null);
         paymentTypeComboBox.setItems(FXCollections.observableArrayList(PaymentType.values()));
         paymentTypeComboBox.getSelectionModel().clearSelection();
@@ -532,8 +544,57 @@ public class JournalController {
         flipRadioMenu(searchShortDateFormatMenu, SearchDateFormat.SHORT == searchDateFormat);
     }
 
+    private Year getSelectedYear() {
+        String selectedTabId = journalTabPane.getSelectionModel().getSelectedItem().getId();
+        if (selectedTabId != null) {
+            return ConversionUtils.convert(selectedTabId, Year.class);
+        } else {
+            Collection<Year> distinctYears = journalRegistry.getDistinctYears();
+            return distinctYears.size() > 0
+                    ? distinctYears.iterator().next()
+                    : Year.now();
+        }
+    }
+
+    private void rebuildJournalTabs() {
+        Year selectedYear = getSelectedYear();
+        journalTabPane.getTabs().clear();
+
+        for (Year year : journalRegistry.getDistinctYears()) {
+            String yearStr = ConversionUtils.convert(year);
+            Tab tab = new Tab(yearStr);
+            tab.setId(yearStr);
+            journalTabPane.getTabs().add(tab);
+        }
+
+        selectYear(selectedYear);
+    }
+
+    private void selectYear(Year year) {
+        Tab previousTab = getTabFor(getSelectedYear());
+        previousTab.setContent(null);
+        Tab chosenTab = getTabFor(year);
+        chosenTab.setContent(journalTabBorderPane);
+        journalTabPane.getSelectionModel().select(chosenTab);
+    }
+
+    private Tab getTabFor(Year year) {
+        String yearStr = ConversionUtils.convert(year);
+        return journalTabPane.getTabs().stream()
+                .filter(tab -> tab.getId().equals(yearStr))
+                .findFirst()
+                .<IllegalArgumentException>orElseThrow(() -> {
+                    throw new IllegalArgumentException("The desired year '" + yearStr + "' is not found in the tab list");
+                });
+    }
+
     private void reloadJournals() {
-        observableJournals = FXCollections.observableArrayList(journalRegistry.getJournals());
+        Collection<Journal> allJournals = journalRegistry.getJournals();
+        List<Journal> currentYearFilteredJournals = allJournals.stream()
+                .filter(journal -> Year.of(journal.getDate().getYear()).equals(getSelectedYear()))
+                .collect(Collectors.toList());
+        observableJournals = FXCollections.observableArrayList(currentYearFilteredJournals);
+        journalTableView.setItems(observableJournals);
     }
 
     private void enterEditingMode() {

@@ -5,7 +5,9 @@ import com.scr.journal.dao.DataPersister;
 import com.scr.journal.model.Journal;
 import com.scr.journal.model.Journals;
 
+import java.time.Year;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class JournalRegistry {
 
@@ -22,6 +24,14 @@ public class JournalRegistry {
         this.backupLoader = backupLoader;
         setJournals(journalLoader.load());
         sort();
+    }
+
+    public Collection<Year> getDistinctYears() {
+        return getJournals().stream()
+                .map(journal -> Year.from(journal.getDate()))
+                .distinct()
+                .sorted(Comparator.reverseOrder())
+                .collect(Collectors.toList());
     }
 
     private void setJournals(Journals journals) {
@@ -58,6 +68,7 @@ public class JournalRegistry {
     }
 
     public void resetToBackup() {
+        // Todo: Implement backup handling on a year-basis
         setJournals(backupLoader.load());
         persist();
     }
