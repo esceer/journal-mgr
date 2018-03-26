@@ -38,7 +38,7 @@ public class JournalController {
     private static final Logger LOGGER = LoggerFactory.getLogger(JournalController.class);
     private static final String DEFAULT_EXPORTED_EXCEL_FILE_NAME = "report.xlsx";
 
-    private volatile boolean editingMode = false;
+    private volatile Mode currentMode = Mode.NONE;
 
     @FXML
     private RadioMenuItem languageHuMenu;
@@ -90,6 +90,7 @@ public class JournalController {
     private final NumberFormat numberFormat;
 
     private ObservableList<Journal> observableJournals;
+    private Journal clipboardedJournal;
 
     public JournalController(
             UILoader uiLoader,
@@ -204,11 +205,13 @@ public class JournalController {
 
         // Add change listeners
         journalTabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            selectYear(ConversionUtils.convert(newValue.getId(), Year.class));
-            reloadJournals();
+            if (newValue != null && oldValue != null && !newValue.equals(oldValue)) {
+                selectYearTab(ConversionUtils.convert(newValue.getId(), Year.class));
+                reloadJournals();
+            }
         });
         journalTableView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if (editingMode) {
+            if (isMode(Mode.EDIT) && journalTableView.getSelectionModel().getSelectedIndex() >= 0) {
                 mirrorFields();
             }
         });
@@ -256,7 +259,7 @@ public class JournalController {
         flipRadioMenu(searchFullDateFormatMenu, true);
         flipRadioMenu(searchShortDateFormatMenu, false);
 
-        infoLabel.setText("Search date format set to 'full'");
+        infoLabel.setText("Search date format set to 'year/month/day'");
     }
 
     @FXML
@@ -266,7 +269,7 @@ public class JournalController {
         flipRadioMenu(searchShortDateFormatMenu, true);
         flipRadioMenu(searchFullDateFormatMenu, false);
 
-        infoLabel.setText("Search date format set to 'short'");
+        infoLabel.setText("Search date format set to 'year/month'");
     }
 
     @FXML
@@ -287,48 +290,56 @@ public class JournalController {
 
     @FXML
     protected void handleSaveClicked(ActionEvent event) {
-        int selectedIndex = journalTableView.getSelectionModel().getSelectedIndex();
-        if (editingMode && selectedIndex >= 0) {
-            Journal editedJournal = createJournal();
-            Journal selectedJournal = observableJournals.get(selectedIndex);
-            journalRegistry.replace(selectedJournal, editedJournal);
-
-            infoLabel.setText("Edited journal");
-        } else {
-            Journal journal = createJournal();
-            journalRegistry.add(journal);
-
-            infoLabel.setText("New journal created");
+        switch (currentMode) {
+            case EDIT:
+                if (clipboardedJournal != null) {
+                    Journal editedJournal = createJournal();
+                    journalRegistry.replace(clipboardedJournal, editedJournal);
+                    infoLabel.setText("Edited journal");
+                }
+                break;
+            case COPY:
+                Journal journal = createJournal();
+                journalRegistry.add(journal);
+                infoLabel.setText("New journal created");
+                break;
+            default:
+                throw new IllegalStateException("Unexpected mode '" + currentMode + "'");
         }
+
+        rebuildJournalTabs();
+        Optional.ofNullable(datePicker.getValue()).ifPresent(localDate ->
+                selectYearTab(Year.of(localDate.getYear())));
+
         resetControls();
     }
 
     @FXML
     protected void handleEditClicked(ActionEvent event) {
         mirrorFields();
-        infoLabel.setText("Editing journal...");
         enterEditingMode();
     }
 
     @FXML
     protected void handleCopyClicked(ActionEvent event) {
         mirrorFields();
-        infoLabel.setText("Copying journal...");
-        cancelEditingMode();
+        enterCopyMode();
     }
 
     @FXML
     protected void handleDeleteClicked(ActionEvent event) {
-        cancelEditingMode();
-
         int selectedIndex = journalTableView.getSelectionModel().getSelectedIndex();
         if (selectedIndex >= 0) {
             Journal selectedJournal = observableJournals.get(selectedIndex);
             journalRegistry.remove(selectedJournal);
             infoLabel.setText("Deleted journal");
 
+            rebuildJournalTabs();
             reloadJournals();
-            filterJournals();
+
+            if (!isMode(Mode.EDIT) && !isMode(Mode.COPY)) {
+                filterJournals();
+            }
         } else {
             throw new IllegalArgumentException("Failed to delete journal as no journal was selected");
         }
@@ -336,7 +347,8 @@ public class JournalController {
 
     @FXML
     protected void handleSearchClicked(ActionEvent event) {
-        cancelEditingMode();
+        Optional.ofNullable(datePicker.getValue()).ifPresent(localDate ->
+                selectYearTab(Year.of(localDate.getYear())));
 
         infoLabel.setText("Filtering journals...");
         reloadJournals();
@@ -389,20 +401,20 @@ public class JournalController {
     private void mirrorFields() {
         int selectedIndex = journalTableView.getSelectionModel().getSelectedIndex();
         if (selectedIndex >= 0) {
-            Journal selectedJournal = observableJournals.get(selectedIndex);
-            datePicker.setValue(selectedJournal.getDate());
-            paymentTypeComboBox.getSelectionModel().select(selectedJournal.getPaymentType());
+            clipboardedJournal = observableJournals.get(selectedIndex);
+            datePicker.setValue(clipboardedJournal.getDate());
+            paymentTypeComboBox.getSelectionModel().select(clipboardedJournal.getPaymentType());
             paymentDirectionGroup.selectToggle(
                     paymentDirectionGroup.getToggles()
                             .stream()
-                            .filter(toggle -> toggle.getUserData().equals(selectedJournal.getPaymentDirection().getAssociatedValue()))
+                            .filter(toggle -> toggle.getUserData().equals(clipboardedJournal.getPaymentDirection().getAssociatedValue()))
                             .findFirst()
                             .orElseThrow(IllegalArgumentException::new));
-            invoiceNumberTextField.setText(selectedJournal.getInvoiceNumber());
-            amountTextField.setText(ConversionUtils.convert(selectedJournal.getAmount()));
-            commentTextField.setText(selectedJournal.getComment());
-            addressTextField.setText(selectedJournal.getAddress());
-            categoryComboBox.setValue(selectedJournal.getExpenseType());
+            invoiceNumberTextField.setText(clipboardedJournal.getInvoiceNumber());
+            amountTextField.setText(ConversionUtils.convert(clipboardedJournal.getAmount()));
+            commentTextField.setText(clipboardedJournal.getComment());
+            addressTextField.setText(clipboardedJournal.getAddress());
+            categoryComboBox.setValue(clipboardedJournal.getExpenseType());
         } else {
             throw new IllegalArgumentException("Failed to mirror journal as no journal was selected");
         }
@@ -510,10 +522,12 @@ public class JournalController {
     }
 
     private void resetControls() {
+        clipboardedJournal = null;
+
         rebuildJournalTabs();
 
         reloadJournals();
-        cancelEditingMode();
+        resetMode();
 
         journalTableView.getSelectionModel().clearSelection();
         datePicker.setValue(null);
@@ -544,7 +558,7 @@ public class JournalController {
         flipRadioMenu(searchShortDateFormatMenu, SearchDateFormat.SHORT == searchDateFormat);
     }
 
-    private Year getSelectedYear() {
+    private Year getCurrentSelectedYear() {
         String selectedTabId = journalTabPane.getSelectionModel().getSelectedItem().getId();
         if (selectedTabId != null) {
             return ConversionUtils.convert(selectedTabId, Year.class);
@@ -557,7 +571,7 @@ public class JournalController {
     }
 
     private void rebuildJournalTabs() {
-        Year selectedYear = getSelectedYear();
+        Year selectedYear = getCurrentSelectedYear();
         journalTabPane.getTabs().clear();
 
         for (Year year : journalRegistry.getDistinctYears()) {
@@ -567,11 +581,11 @@ public class JournalController {
             journalTabPane.getTabs().add(tab);
         }
 
-        selectYear(selectedYear);
+        selectYearTab(selectedYear);
     }
 
-    private void selectYear(Year year) {
-        Tab previousTab = getTabFor(getSelectedYear());
+    private void selectYearTab(Year year) {
+        Tab previousTab = getTabFor(getCurrentSelectedYear());
         previousTab.setContent(null);
         Tab chosenTab = getTabFor(year);
         chosenTab.setContent(journalTabBorderPane);
@@ -580,34 +594,57 @@ public class JournalController {
 
     private Tab getTabFor(Year year) {
         String yearStr = ConversionUtils.convert(year);
-        return journalTabPane.getTabs().stream()
+        Optional<Tab> foundTab = journalTabPane.getTabs().stream()
                 .filter(tab -> tab.getId().equals(yearStr))
-                .findFirst()
-                .<IllegalArgumentException>orElseThrow(() -> {
-                    throw new IllegalArgumentException("The desired year '" + yearStr + "' is not found in the tab list");
-                });
+                .findFirst();
+        if (foundTab.isPresent()) {
+            return foundTab.get();
+        } else {
+            return journalTabPane.getTabs().stream()
+                    .findFirst()
+                    .<IllegalArgumentException>orElseThrow(() -> {
+                        throw new IllegalArgumentException("No tab found in the tab list");
+                    });
+        }
     }
 
     private void reloadJournals() {
         Collection<Journal> allJournals = journalRegistry.getJournals();
         List<Journal> currentYearFilteredJournals = allJournals.stream()
-                .filter(journal -> Year.of(journal.getDate().getYear()).equals(getSelectedYear()))
+                .filter(journal -> Year.of(journal.getDate().getYear()).equals(getCurrentSelectedYear()))
                 .collect(Collectors.toList());
         observableJournals = FXCollections.observableArrayList(currentYearFilteredJournals);
         journalTableView.setItems(observableJournals);
     }
 
     private void enterEditingMode() {
-        editingMode = true;
+        currentMode = Mode.EDIT;
+        infoLabel.setText("Editing journal...");
     }
 
-    private void cancelEditingMode() {
-        editingMode = false;
+    private void enterCopyMode() {
+        currentMode = Mode.COPY;
+        infoLabel.setText("Copying journal...");
+    }
+
+    private void resetMode() {
+        infoLabel.setText(null);
+        currentMode = Mode.NONE;
+    }
+
+    private boolean isMode(Mode mode) {
+        return currentMode == mode;
     }
 
     private static void flipRadioMenu(RadioMenuItem radioMenuItem, boolean select) {
 //        radioMenuItem.setDisable(select);
         radioMenuItem.setSelected(select);
+    }
+
+    private enum Mode {
+        EDIT,
+        COPY,
+        NONE
     }
 
 }
