@@ -97,7 +97,7 @@ public class ExcelWriter {
 
         rowBuilder.skipRow()
                 .addRow()
-                .addCell("Sum")
+                .addCell("sum")
                 .addMoneyCell(totalMonthEndBalanceMap.getOrDefault(Month.JANUARY, 0L))
                 .addMoneyCell(totalMonthEndBalanceMap.getOrDefault(Month.FEBRUARY, 0L))
                 .addMoneyCell(totalMonthEndBalanceMap.getOrDefault(Month.MARCH, 0L))
@@ -117,7 +117,7 @@ public class ExcelWriter {
                 .orElse(0L);
         rowBuilder.skipRow()
                 .addRow()
-                .addCell("Total")
+                .addCell("total")
                 .addMoneyCell(totalBalance);
 
         writeOutput(workbook, outputFilePath);
