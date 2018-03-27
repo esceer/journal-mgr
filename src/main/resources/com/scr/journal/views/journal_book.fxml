@@ -33,8 +33,17 @@
         <menus>
           <Menu mnemonicParsing="false" text="%menu.file">
             <items>
-              <MenuItem mnemonicParsing="true" onAction="#handleExport" text="_Export..." />
-                <MenuItem mnemonicParsing="true" onAction="#handleImport" text="_Import..." />
+                  <Menu mnemonicParsing="false" text="Export">
+                     <items>
+                        <MenuItem mnemonicParsing="true" onAction="#handleExportMonthEnd" text="%menu.file.export.month_end_balance" />
+                    <MenuItem mnemonicParsing="true" onAction="#handleExportJournals" text="%menu.file.export.journals" />
+                     </items>
+                  </Menu>
+                  <Menu mnemonicParsing="false" text="Import">
+                     <items>
+                      <MenuItem mnemonicParsing="true" onAction="#handleImport" text="%menu.file.import.csv" />
+                     </items>
+                  </Menu>
                   <SeparatorMenuItem mnemonicParsing="false" />
                   <Menu mnemonicParsing="false" text="Beallitasok">
                     <items>
@@ -190,42 +199,42 @@
                            <center>
                                  <TableView fx:id="journalTableView" BorderPane.alignment="CENTER">
                                      <columns>
-                                         <TableColumn fx:id="dateColumn" maxWidth="200.0" text="%label.date">
+                                         <TableColumn fx:id="dateColumn" maxWidth="100.0" minWidth="70.0" prefWidth="-1.0" text="%label.date">
                                              <cellValueFactory>
                                                  <PropertyValueFactory property="date" />
                                              </cellValueFactory>
                                          </TableColumn>
-                                         <TableColumn fx:id="paymentTypeColumn" maxWidth="200.0" text="%label.payment_type">
+                                         <TableColumn fx:id="paymentTypeColumn" maxWidth="100.0" minWidth="85.0" prefWidth="-1.0" text="%label.payment_type">
                                              <cellValueFactory>
                                                  <PropertyValueFactory property="paymentType" />
                                              </cellValueFactory>
                                          </TableColumn>
-                                         <TableColumn fx:id="paymentDirectionColumn" maxWidth="200.0" text="%label.payment_direction">
+                                         <TableColumn fx:id="paymentDirectionColumn" maxWidth="100.0" minWidth="50.0" prefWidth="-1.0" text="%label.payment_direction">
                                              <cellValueFactory>
                                                  <PropertyValueFactory property="paymentDirection" />
                                              </cellValueFactory>
                                          </TableColumn>
-                                         <TableColumn fx:id="invoiceNumberColumn" maxWidth="500.0" text="%label.invoice_number">
+                                         <TableColumn fx:id="invoiceNumberColumn" maxWidth="500.0" minWidth="50.0" prefWidth="-1.0" text="%label.invoice_number">
                                              <cellValueFactory>
                                                  <PropertyValueFactory property="invoiceNumber" />
                                              </cellValueFactory>
                                          </TableColumn>
-                                         <TableColumn fx:id="amountColumn" maxWidth="250.0" style="-fx-alignment: CENTER-RIGHT;" text="%label.amount">
+                                         <TableColumn fx:id="amountColumn" maxWidth="250.0" minWidth="50.0" prefWidth="-1.0" style="-fx-alignment: CENTER-RIGHT;" text="%label.amount">
                                              <cellValueFactory>
                                                  <PropertyValueFactory property="amount" />
                                              </cellValueFactory>
                                          </TableColumn>
-                                         <TableColumn fx:id="commentColumn" maxWidth="500.0" text="%label.comment">
+                                         <TableColumn fx:id="commentColumn" maxWidth="500.0" prefWidth="-1.0" text="%label.comment">
                                              <cellValueFactory>
                                                  <PropertyValueFactory property="comment" />
                                              </cellValueFactory>
                                          </TableColumn>
-                                         <TableColumn fx:id="addressColumn" maxWidth="500.0" text="%label.address">
+                                         <TableColumn fx:id="addressColumn" maxWidth="500.0" prefWidth="-1.0" text="%label.address">
                                              <cellValueFactory>
                                                  <PropertyValueFactory property="address" />
                                              </cellValueFactory>
                                          </TableColumn>
-                                         <TableColumn fx:id="expenseTypeColumn" maxWidth="500.0" text="%label.expense_type">
+                                         <TableColumn fx:id="expenseTypeColumn" maxWidth="500.0" minWidth="50.0" prefWidth="-1.0" text="%label.expense_type">
                                              <cellValueFactory>
                                                  <PropertyValueFactory property="expenseType" />
                                              </cellValueFactory>

@@ -116,4 +116,10 @@ public class JournalModule extends AbstractModule {
         return NumberFormat.getCurrencyInstance(new Locale(numberFormatLanguage, numberFormatCountry));
     }
 
+    @Provides
+    @Singleton
+    public ExcelWriter createExcelWriter(NumberFormat numberFormat) {
+        return new ExcelWriter(numberFormat);
+    }
+
 }

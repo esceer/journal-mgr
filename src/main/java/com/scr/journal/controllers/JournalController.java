@@ -365,13 +365,38 @@ public class JournalController {
     }
 
     @FXML
-    protected void handleExport(ActionEvent event) {
+    protected void handleExportMonthEnd(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save file");
         fileChooser.setInitialFileName(DEFAULT_EXPORTED_EXCEL_FILE_NAME);
         File exportFilePath = fileChooser.showSaveDialog(null);
         if (exportFilePath != null) {
-            excelWriter.save(exportFilePath.getPath(), Journals.from(observableJournals), SettingsRegistry.get().getResourceBundle());
+
+            Collection<Journal> allJournals = journalRegistry.getJournals();
+            List<Journal> filteredJournals = allJournals.stream()
+                    .filter(journal -> Year.of(journal.getDate().getYear()).equals(getCurrentSelectedYear()))
+                    .sorted()
+                    .collect(Collectors.toList());
+
+            excelWriter.saveMonthEndBooking(
+                    exportFilePath.getPath(),
+                    Journals.from(filteredJournals),
+                    SettingsRegistry.get().getResourceBundle());
+            infoLabel.setText("Successfully exported month end booking");
+        }
+    }
+
+    @FXML
+    protected void handleExportJournals(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save file");
+        fileChooser.setInitialFileName(DEFAULT_EXPORTED_EXCEL_FILE_NAME);
+        File exportFilePath = fileChooser.showSaveDialog(null);
+        if (exportFilePath != null) {
+            excelWriter.saveJournals(
+                    exportFilePath.getPath(),
+                    Journals.from(observableJournals),
+                    SettingsRegistry.get().getResourceBundle());
             infoLabel.setText("Successfully exported journals");
         }
     }
@@ -380,6 +405,7 @@ public class JournalController {
     protected void handleImport(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Load file");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Csv files", "*.csv"));
         File importFilePath = fileChooser.showOpenDialog(null);
 
         if (importFilePath != null) {

@@ -17,17 +17,115 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.text.NumberFormat;
+import java.time.Month;
+import java.time.format.TextStyle;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class ExcelWriter {
 
-    public void save(String exportFilePath, Journals data, ResourceBundle resourceBundle) {
+    private final NumberFormat numberFormat;
+
+    public ExcelWriter(NumberFormat numberFormat) {
+        this.numberFormat = numberFormat;
+    }
+
+    public void saveMonthEndBooking(String outputFilePath, Journals data, ResourceBundle resourceBundle) {
         Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("2018");
+        Sheet sheet = workbook.createSheet("Month end booking");
+
+        Map<String, Map<Month, Long>> expenseTypeMonthEndBalanceMap = new TreeMap<>();
+
+        Collection<Journal> journals = data.getJournals();
+        journals.stream()
+                .sorted()
+                .forEach(journal -> {
+                    String expenseType = journal.getExpenseType();
+                    Map<Month, Long> monthEndBalanceMap = expenseTypeMonthEndBalanceMap.computeIfAbsent(expenseType, key -> new TreeMap<>());
+
+                    Month month = Month.from(journal.getDate());
+                    Long balance = monthEndBalanceMap.computeIfAbsent(month, key -> 0L);
+
+                    monthEndBalanceMap.put(month, balance + journal.getSignedAmount());
+                });
+
+        Locale locale = resourceBundle.getLocale();
+
+        RowBuilder rowBuilder = new RowBuilder(sheet);
+        rowBuilder.addRow()
+                .addCell(resourceBundle.getString("label.expense_type").toLowerCase())
+                .addCell(Month.JANUARY.getDisplayName(TextStyle.FULL_STANDALONE, locale))
+                .addCell(Month.FEBRUARY.getDisplayName(TextStyle.FULL_STANDALONE, locale))
+                .addCell(Month.MARCH.getDisplayName(TextStyle.FULL_STANDALONE, locale))
+                .addCell(Month.APRIL.getDisplayName(TextStyle.FULL_STANDALONE, locale))
+                .addCell(Month.MAY.getDisplayName(TextStyle.FULL_STANDALONE, locale))
+                .addCell(Month.JUNE.getDisplayName(TextStyle.FULL_STANDALONE, locale))
+                .addCell(Month.JULY.getDisplayName(TextStyle.FULL_STANDALONE, locale))
+                .addCell(Month.AUGUST.getDisplayName(TextStyle.FULL_STANDALONE, locale))
+                .addCell(Month.SEPTEMBER.getDisplayName(TextStyle.FULL_STANDALONE, locale))
+                .addCell(Month.OCTOBER.getDisplayName(TextStyle.FULL_STANDALONE, locale))
+                .addCell(Month.NOVEMBER.getDisplayName(TextStyle.FULL_STANDALONE, locale))
+                .addCell(Month.DECEMBER.getDisplayName(TextStyle.FULL_STANDALONE, locale));
+
+        expenseTypeMonthEndBalanceMap.forEach((expenseType, monthEndBalanceMap) -> {
+            rowBuilder.addRow()
+                    .addCell(expenseType)
+                    .addMoneyCell(monthEndBalanceMap.getOrDefault(Month.JANUARY, 0L))
+                    .addMoneyCell(monthEndBalanceMap.getOrDefault(Month.FEBRUARY, 0L))
+                    .addMoneyCell(monthEndBalanceMap.getOrDefault(Month.MARCH, 0L))
+                    .addMoneyCell(monthEndBalanceMap.getOrDefault(Month.APRIL, 0L))
+                    .addMoneyCell(monthEndBalanceMap.getOrDefault(Month.MAY, 0L))
+                    .addMoneyCell(monthEndBalanceMap.getOrDefault(Month.JUNE, 0L))
+                    .addMoneyCell(monthEndBalanceMap.getOrDefault(Month.JULY, 0L))
+                    .addMoneyCell(monthEndBalanceMap.getOrDefault(Month.AUGUST, 0L))
+                    .addMoneyCell(monthEndBalanceMap.getOrDefault(Month.SEPTEMBER, 0L))
+                    .addMoneyCell(monthEndBalanceMap.getOrDefault(Month.OCTOBER, 0L))
+                    .addMoneyCell(monthEndBalanceMap.getOrDefault(Month.NOVEMBER, 0L))
+                    .addMoneyCell(monthEndBalanceMap.getOrDefault(Month.DECEMBER, 0L));
+        });
+
+        Map<Month, Long> totalMonthEndBalanceMap = new TreeMap<>(Comparator.comparingInt(Month::getValue));
+        journals.stream()
+                .sorted()
+                .forEach(journal -> {
+                    Month month = Month.from(journal.getDate());
+                    Long balance = totalMonthEndBalanceMap.computeIfAbsent(month, key -> 0L);
+                    totalMonthEndBalanceMap.put(month, balance + journal.getSignedAmount());
+                });
+
+        rowBuilder.skipRow()
+                .addRow()
+                .addCell("Sum")
+                .addMoneyCell(totalMonthEndBalanceMap.getOrDefault(Month.JANUARY, 0L))
+                .addMoneyCell(totalMonthEndBalanceMap.getOrDefault(Month.FEBRUARY, 0L))
+                .addMoneyCell(totalMonthEndBalanceMap.getOrDefault(Month.MARCH, 0L))
+                .addMoneyCell(totalMonthEndBalanceMap.getOrDefault(Month.APRIL, 0L))
+                .addMoneyCell(totalMonthEndBalanceMap.getOrDefault(Month.MAY, 0L))
+                .addMoneyCell(totalMonthEndBalanceMap.getOrDefault(Month.JUNE, 0L))
+                .addMoneyCell(totalMonthEndBalanceMap.getOrDefault(Month.JULY, 0L))
+                .addMoneyCell(totalMonthEndBalanceMap.getOrDefault(Month.AUGUST, 0L))
+                .addMoneyCell(totalMonthEndBalanceMap.getOrDefault(Month.SEPTEMBER, 0L))
+                .addMoneyCell(totalMonthEndBalanceMap.getOrDefault(Month.OCTOBER, 0L))
+                .addMoneyCell(totalMonthEndBalanceMap.getOrDefault(Month.NOVEMBER, 0L))
+                .addMoneyCell(totalMonthEndBalanceMap.getOrDefault(Month.DECEMBER, 0L));
+
+        long totalBalance = totalMonthEndBalanceMap.values()
+                .stream()
+                .reduce((b1, b2) -> b1 + b2)
+                .orElse(0L);
+        rowBuilder.skipRow()
+                .addRow()
+                .addCell("Total")
+                .addMoneyCell(totalBalance);
+
+        writeOutput(workbook, outputFilePath);
+    }
+
+    public void saveJournals(String outputFilePath, Journals data, ResourceBundle resourceBundle) {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Journals");
 
         RowBuilder rowBuilder = new RowBuilder(sheet);
         rowBuilder.addRow()
@@ -40,7 +138,7 @@ public class ExcelWriter {
                 .addCell(resourceBundle.getString("label.address"))
                 .addCell(resourceBundle.getString("label.expense_type"));
 
-        Map<PaymentType, String> internalPaymentTypeMapping =new HashMap<PaymentType, String>() {{
+        Map<PaymentType, String> internalPaymentTypeMapping = new HashMap<PaymentType, String>() {{
             put(PaymentType.BANK_TRANSFER, resourceBundle.getString("data.payment_type.bank_transfer"));
             put(PaymentType.CASH, resourceBundle.getString("data.payment_type.cash"));
         }};
@@ -61,8 +159,11 @@ public class ExcelWriter {
                     .addCell(journal::getExpenseType);
         }
 
+        writeOutput(workbook, outputFilePath);
+    }
 
-        try (OutputStream outputStream = Files.newOutputStream(Paths.get(exportFilePath),
+    private static void writeOutput(Workbook workbook, String outputFilePath) {
+        try (OutputStream outputStream = Files.newOutputStream(Paths.get(outputFilePath),
                 StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING,
                 StandardOpenOption.WRITE)) {
@@ -72,7 +173,7 @@ public class ExcelWriter {
         }
     }
 
-    private static class RowBuilder {
+    private class RowBuilder {
         private final Sheet sheet;
         private Row currentRow = null;
         private int rowNum = 0;
@@ -88,6 +189,10 @@ public class ExcelWriter {
             return this;
         }
 
+        public RowBuilder addMoneyCell(long value) {
+            return addCell(() -> numberFormat.format(value));
+        }
+
         public RowBuilder addCell(Supplier<?> getter) {
             return addCell(getter, ConversionUtils::convert);
         }
@@ -101,6 +206,14 @@ public class ExcelWriter {
             Cell cell = currentRow.createCell(cellNum++);
             cell.setCellValue(strValue);
             return this;
+        }
+
+        public RowBuilder skipRow() {
+            return addRow();
+        }
+
+        public RowBuilder skipCell() {
+            return addCell("");
         }
     }
 
