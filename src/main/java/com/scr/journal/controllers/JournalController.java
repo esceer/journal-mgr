@@ -27,8 +27,10 @@ import java.io.File;
 import java.net.URI;
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.Year;
 import java.time.YearMonth;
+import java.time.format.TextStyle;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -578,6 +580,7 @@ public class JournalController {
             String yearStr = ConversionUtils.convert(year);
             Tab tab = new Tab(yearStr);
             tab.setId(yearStr);
+            tab.setTooltip(getMonthEndBalancesTooltipFor(year));
             journalTabPane.getTabs().add(tab);
         }
 
@@ -615,6 +618,31 @@ public class JournalController {
                 .collect(Collectors.toList());
         observableJournals = FXCollections.observableArrayList(currentYearFilteredJournals);
         journalTableView.setItems(observableJournals);
+    }
+
+    private Tooltip getMonthEndBalancesTooltipFor(Year year) {
+        Map<Month, Long> monthEndBalanceMap = new TreeMap<>(Comparator.comparingInt(Month::getValue));
+
+        Collection<Journal> allJournals = journalRegistry.getJournals();
+        allJournals.stream()
+                .filter(journal -> Year.of(journal.getDate().getYear()).equals(year))
+                .sorted()
+                .forEach(journal -> {
+                    Month month = Month.from(journal.getDate());
+                    Long balance = monthEndBalanceMap.computeIfAbsent(month, key -> 0L);
+                    monthEndBalanceMap.put(month, balance + journal.getSignedAmount());
+                });
+
+        Locale locale = SettingsRegistry.get().getLocale();
+
+        StringBuilder tooltipBuilder = new StringBuilder();
+        monthEndBalanceMap.forEach((month, balance) ->
+                tooltipBuilder
+                        .append(month.getDisplayName(TextStyle.FULL_STANDALONE, locale))
+                        .append(": ")
+                        .append(balance)
+                        .append("\n"));
+        return new Tooltip(tooltipBuilder.toString());
     }
 
     private void enterEditingMode() {

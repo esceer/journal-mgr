@@ -81,6 +81,15 @@ public class Journal implements Comparable<Journal> {
         this.amount.set(amount);
     }
 
+    public long getSignedAmount() {
+        long amount = getAmount();
+        if (PaymentDirection.OUTGOING == getPaymentDirection()) {
+            amount = Math.negateExact(amount);
+
+        }
+        return amount;
+    }
+
     public String getComment() {
         return comment.get();
     }
