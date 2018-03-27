@@ -640,7 +640,7 @@ public class JournalController {
                 tooltipBuilder
                         .append(month.getDisplayName(TextStyle.FULL_STANDALONE, locale))
                         .append(": ")
-                        .append(balance)
+                        .append(numberFormat.format(balance))
                         .append("\n"));
         return new Tooltip(tooltipBuilder.toString());
     }
