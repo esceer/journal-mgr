@@ -50,7 +50,7 @@
                      </items>
                   </Menu>
                   <SeparatorMenuItem mnemonicParsing="false" />
-                  <Menu mnemonicParsing="false" text="Beallitasok">
+                  <Menu mnemonicParsing="false" text="%menu.file.settings">
                     <items>
                         <Menu mnemonicParsing="false" text="%menu.file.settings.language">
                           <items>
