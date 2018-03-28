@@ -301,6 +301,7 @@ public class JournalController {
                 }
                 break;
             case COPY:
+            case NONE:
                 Journal journal = createJournal();
                 journalRegistry.add(journal);
                 infoLabel.setText("New journal created");
@@ -587,9 +588,9 @@ public class JournalController {
     }
 
     private Year getCurrentSelectedYear() {
-        String selectedTabId = journalTabPane.getSelectionModel().getSelectedItem().getId();
-        if (selectedTabId != null) {
-            return ConversionUtils.convert(selectedTabId, Year.class);
+        Tab selectedItem = journalTabPane.getSelectionModel().getSelectedItem();
+        if (selectedItem != null) {
+            return ConversionUtils.convert(selectedItem.getId(), Year.class);
         } else {
             Collection<Year> distinctYears = journalRegistry.getDistinctYears();
             return distinctYears.size() > 0
@@ -614,26 +615,26 @@ public class JournalController {
     }
 
     private void selectYearTab(Year year) {
-        Tab previousTab = getTabFor(getCurrentSelectedYear());
-        previousTab.setContent(null);
-        Tab chosenTab = getTabFor(year);
-        chosenTab.setContent(journalTabBorderPane);
-        journalTabPane.getSelectionModel().select(chosenTab);
+        Optional<Tab> previousTab = getTabFor(getCurrentSelectedYear());
+        previousTab.ifPresent(tab -> tab.setContent(null));
+
+        Optional<Tab> chosenTab = getTabFor(year);
+        chosenTab.ifPresent(tab -> {
+            tab.setContent(journalTabBorderPane);
+            journalTabPane.getSelectionModel().select(tab);
+        });
     }
 
-    private Tab getTabFor(Year year) {
+    private Optional<Tab> getTabFor(Year year) {
         String yearStr = ConversionUtils.convert(year);
         Optional<Tab> foundTab = journalTabPane.getTabs().stream()
                 .filter(tab -> tab.getId().equals(yearStr))
                 .findFirst();
         if (foundTab.isPresent()) {
-            return foundTab.get();
+            return foundTab;
         } else {
             return journalTabPane.getTabs().stream()
-                    .findFirst()
-                    .<IllegalArgumentException>orElseThrow(() -> {
-                        throw new IllegalArgumentException("No tab found in the tab list");
-                    });
+                    .findFirst();
         }
     }
 
