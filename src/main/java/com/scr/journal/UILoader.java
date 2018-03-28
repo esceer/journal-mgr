@@ -3,6 +3,7 @@ package com.scr.journal;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -38,6 +39,10 @@ public class UILoader {
         try (InputStream inputStream = UILoader.class.getResourceAsStream("/com/scr/journal/views/journal_book.fxml")) {
             FXMLLoader fxmlLoader = cloneLoader();
             Parent root = fxmlLoader.load(inputStream);
+            stage.getIcons().addAll(
+                    new Image(UILoader.class.getResourceAsStream("/icon/deer16.png")),
+                    new Image(UILoader.class.getResourceAsStream("/icon/deer32.png")),
+                    new Image(UILoader.class.getResourceAsStream("/icon/deer64.png")));
             stage.setTitle("Journal Manager");
             stage.setScene(new Scene(root, 960, 720));
             stage.show();
