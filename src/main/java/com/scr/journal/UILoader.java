@@ -42,6 +42,7 @@ public class UILoader {
             stage.getIcons().addAll(
                     new Image(UILoader.class.getResourceAsStream("/icon/deer16.png")),
                     new Image(UILoader.class.getResourceAsStream("/icon/deer32.png")),
+                    new Image(UILoader.class.getResourceAsStream("/icon/deer48.png")),
                     new Image(UILoader.class.getResourceAsStream("/icon/deer64.png")));
             stage.setTitle("Journal Manager");
             stage.setScene(new Scene(root, 960, 720));
