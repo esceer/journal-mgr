@@ -42,9 +42,15 @@ buildscript {
 apply plugin: 'javafx-gradle-plugin'
 
 jfx {
-    // minimal requirement for jfxJar-task
-    mainClass = 'com.scr.journal.Main'
+    verbose = true
+    deployDir = "src/main/resources/deploy"
 
-    // minimal requirement for jfxNative-task
+    // jfxJar-task
+    mainClass = 'com.scr.journal.Main'
+    jfxMainAppJarName="journal-manager.jar"
+
+    // jfxNative-task
     vendor = 'esceer'
+    appName = "journal-manager"
+    skipJNLP = true
 }
