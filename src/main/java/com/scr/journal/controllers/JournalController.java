@@ -382,7 +382,7 @@ public class JournalController {
             excelWriter.saveMonthEndBooking(
                     exportFilePath.getPath(),
                     Journals.from(filteredJournals),
-                    SettingsRegistry.get().getResourceBundle());
+                    false);
             infoLabel.setText("Successfully exported month end booking");
         }
     }
@@ -396,8 +396,7 @@ public class JournalController {
         if (exportFilePath != null) {
             excelWriter.saveJournals(
                     exportFilePath.getPath(),
-                    Journals.from(observableJournals),
-                    SettingsRegistry.get().getResourceBundle());
+                    Journals.from(observableJournals));
             infoLabel.setText("Successfully exported journals");
         }
     }
