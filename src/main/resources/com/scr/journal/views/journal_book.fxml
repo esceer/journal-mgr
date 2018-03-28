@@ -35,7 +35,12 @@
             <items>
                   <Menu mnemonicParsing="false" text="Export">
                      <items>
-                        <MenuItem mnemonicParsing="true" onAction="#handleExportMonthEnd" text="%menu.file.export.month_end_balance" />
+                        <Menu mnemonicParsing="false" text="%menu.file.export.month_end_balance">
+                           <items>
+                              <MenuItem mnemonicParsing="true" onAction="#handleExportMonthEndForSeason" text="%menu.file.export.month_end_balance.season" />
+                              <MenuItem mnemonicParsing="true" onAction="#handleExportMonthEndForCalendarYear" text="%menu.file.export.month_end_balance.calendar_year" />
+                           </items>
+                        </Menu>
                     <MenuItem mnemonicParsing="true" onAction="#handleExportJournals" text="%menu.file.export.journals" />
                      </items>
                   </Menu>

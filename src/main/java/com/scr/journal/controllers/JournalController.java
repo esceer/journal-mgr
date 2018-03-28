@@ -366,24 +366,67 @@ public class JournalController {
     }
 
     @FXML
-    protected void handleExportMonthEnd(ActionEvent event) {
+    protected void handleExportMonthEndForSeason(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save file");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Microsoft Excel files", "*.xlsx"));
         fileChooser.setInitialFileName(DEFAULT_EXPORTED_EXCEL_FILE_NAME);
         File exportFilePath = fileChooser.showSaveDialog(null);
         if (exportFilePath != null) {
+            Year thisYear = getCurrentSelectedYear();
+            Year lastYear = thisYear.minusYears(1);
+            List<YearMonth> season = Arrays.asList(
+                    lastYear.atMonth(Month.MARCH),
+                    lastYear.atMonth(Month.APRIL),
+                    lastYear.atMonth(Month.MAY),
+                    lastYear.atMonth(Month.JUNE),
+                    lastYear.atMonth(Month.JULY),
+                    lastYear.atMonth(Month.AUGUST),
+                    lastYear.atMonth(Month.SEPTEMBER),
+                    lastYear.atMonth(Month.OCTOBER),
+                    lastYear.atMonth(Month.NOVEMBER),
+                    lastYear.atMonth(Month.DECEMBER),
+                    thisYear.atMonth(Month.JANUARY),
+                    thisYear.atMonth(Month.FEBRUARY)
+            );
 
             Collection<Journal> allJournals = journalRegistry.getJournals();
             List<Journal> filteredJournals = allJournals.stream()
-                    .filter(journal -> Year.of(journal.getDate().getYear()).equals(getCurrentSelectedYear()))
+                    .filter(journal -> season.contains(YearMonth.from(journal.getDate())))
                     .sorted()
                     .collect(Collectors.toList());
 
             excelWriter.saveMonthEndBooking(
+                    String.format("%s-%s", lastYear.toString(), thisYear.toString()),
+                    exportFilePath.getPath(),
+                    Journals.from(filteredJournals),
+                    true);
+            infoLabel.setText("Successfully exported month end booking for the current season");
+        }
+    }
+
+    @FXML
+    protected void handleExportMonthEndForCalendarYear(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save file");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Microsoft Excel files", "*.xlsx"));
+        fileChooser.setInitialFileName(DEFAULT_EXPORTED_EXCEL_FILE_NAME);
+        File exportFilePath = fileChooser.showSaveDialog(null);
+        if (exportFilePath != null) {
+            Year thisYear = getCurrentSelectedYear();
+
+            Collection<Journal> allJournals = journalRegistry.getJournals();
+            List<Journal> filteredJournals = allJournals.stream()
+                    .filter(journal -> Year.from(journal.getDate()).equals(thisYear))
+                    .sorted()
+                    .collect(Collectors.toList());
+
+            excelWriter.saveMonthEndBooking(
+                    thisYear.toString(),
                     exportFilePath.getPath(),
                     Journals.from(filteredJournals),
                     false);
-            infoLabel.setText("Successfully exported month end booking");
+            infoLabel.setText("Successfully exported month end booking for the entire calendar year");
         }
     }
 
@@ -395,6 +438,7 @@ public class JournalController {
         File exportFilePath = fileChooser.showSaveDialog(null);
         if (exportFilePath != null) {
             excelWriter.saveJournals(
+                    getCurrentSelectedYear().toString(),
                     exportFilePath.getPath(),
                     Journals.from(observableJournals));
             infoLabel.setText("Successfully exported journals");

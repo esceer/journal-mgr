@@ -34,15 +34,15 @@ public class ExcelWriter {
         this.numberFormat = numberFormat;
     }
 
-    public void saveMonthEndBooking(String outputFilePath, Journals data, boolean shiftSeason) {
+    public void saveMonthEndBooking(String tabName, String outputFilePath, Journals data, boolean shiftSeason) {
         MonthProvider monthProvider = MonthProvider.create();
         if (shiftSeason) {
             // Start from March to next year's February
-            monthProvider.shiftMonths(2);
+            monthProvider.shiftMonths(-2);
         }
 
         Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Month end booking");
+        Sheet sheet = workbook.createSheet(tabName);
 
         Map<String, Map<Month, Long>> expenseTypeMonthEndBalanceMap = new TreeMap<>();
 
@@ -132,9 +132,9 @@ public class ExcelWriter {
         writeOutput(workbook, outputFilePath);
     }
 
-    public void saveJournals(String outputFilePath, Journals data) {
+    public void saveJournals(String tabName, String outputFilePath, Journals data) {
         Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Journals");
+        Sheet sheet = workbook.createSheet(tabName);
 
         ResourceBundle resourceBundle = SettingsRegistry.get().getResourceBundle();
 
