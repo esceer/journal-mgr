@@ -1,23 +1,25 @@
 package com.scr.journal.util;
 
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public class MonthProvider {
 
-    private static final List<Month> CALENDAR_YEAR_MONTH = Arrays.asList(
-            Month.JANUARY, Month.FEBRUARY,
-            Month.MARCH, Month.APRIL, Month.MAY,
-            Month.JUNE, Month.JULY, Month.AUGUST,
-            Month.SEPTEMBER, Month.OCTOBER, Month.NOVEMBER,
-            Month.DECEMBER);
+    private static final List<Month> CALENDAR_YEAR_MONTH = Collections.unmodifiableList(
+            Arrays.asList(
+                    Month.JANUARY, Month.FEBRUARY,
+                    Month.MARCH, Month.APRIL, Month.MAY,
+                    Month.JUNE, Month.JULY, Month.AUGUST,
+                    Month.SEPTEMBER, Month.OCTOBER, Month.NOVEMBER,
+                    Month.DECEMBER));
 
     private final List<Month> months;
 
     private MonthProvider(List<Month> months) {
-        this.months = months;
+        this.months = new ArrayList<>(months);
     }
 
     public static MonthProvider create() {
