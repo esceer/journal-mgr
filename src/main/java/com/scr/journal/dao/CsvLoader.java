@@ -5,6 +5,7 @@ import com.scr.journal.model.Journals;
 import com.scr.journal.model.PaymentDirection;
 import com.scr.journal.model.PaymentType;
 import com.scr.journal.util.ConversionUtils;
+import com.scr.journal.util.StringUtils;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -43,19 +44,25 @@ public class CsvLoader {
 
     private Journal parseJournal(String row) {
         String[] fractions = row.split(DELIMITER);
-        if (fractions.length < 9) {
-            throw new IllegalStateException("Unexpected csv entry format");
+        if (fractions.length < 5) {
+            throw new IllegalStateException("Unexpected csv row format");
         }
         String date = fractions[0];
         String address = fractions[3];
-        String comment = fractions[8];
         String invoiceNumber = fractions[4];
 
-        Matcher amountMatcher = PATTERN_AMOUNT.matcher(fractions[5]);
+        Matcher amountMatcher = PATTERN_AMOUNT.matcher(StringUtils.trim(fractions[5]));
         if (!amountMatcher.matches()) {
             throw new IllegalStateException("Unexpected amount format");
         }
         long amount = ConversionUtils.convert(amountMatcher.group(1), Long.class);
+
+
+        String comment = null;
+        if (fractions.length >= 9) {
+            comment = fractions[8];
+        }
+
 
         Journal journal = new Journal();
         journal.setDate(ConversionUtils.convert(date, LocalDate.class));
