@@ -37,9 +37,9 @@ public class JournalModule extends AbstractModule {
 
     @Provides
     @Singleton
-    public UILoader createUILoader(FXMLLoader fxmlLoader) {
+    public UILoader createUILoader(FXMLLoader fxmlLoader, @Named("jmgr.version") String version) {
         fxmlLoader.setResources(SettingsRegistry.get().getResourceBundle());
-        return new UILoader(fxmlLoader);
+        return new UILoader(fxmlLoader, version);
     }
 
     @Provides
