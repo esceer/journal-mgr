@@ -8,16 +8,21 @@ import com.scr.journal.model.Journals;
 import com.scr.journal.model.PaymentDirection;
 import com.scr.journal.model.PaymentType;
 import com.scr.journal.util.*;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -226,8 +231,34 @@ public class JournalController {
         // Set common error handling
         Thread.setDefaultUncaughtExceptionHandler((thread, cause) -> {
             LOGGER.error("Exception on thread: " + thread.getName(), cause);
-            infoLabel.setText("Exception: " + ValidationUtils.getRootCause(cause).getMessage());
+            infoLabel.setText("!!! Exception: " + ValidationUtils.getRootCause(cause).getMessage());
+            openAlertDialog(cause);
         });
+    }
+
+    private void openAlertDialog(Throwable cause) {
+        ResourceBundle resourceBundle = uiLoader.getResourceBundle();
+
+        Alert alert = new Alert(Alert.AlertType.ERROR, ValidationUtils.getRootCause(cause).getMessage(), ButtonType.OK);
+        alert.setHeaderText(resourceBundle.getString("alert.dialog.header.text"));
+
+        DialogPane pane = alert.getDialogPane();
+
+        ObjectProperty<ButtonType> result = new SimpleObjectProperty<>();
+        ((Button) pane.lookupButton(ButtonType.OK)).setOnAction(e -> {
+            result.set(ButtonType.OK);
+            pane.getScene().getWindow().hide();
+        });
+
+        pane.getScene().setRoot(new Label());
+        Scene scene = new Scene(pane);
+
+        Stage dialog = new Stage();
+        dialog.setScene(scene);
+        dialog.setTitle(resourceBundle.getString("alert.dialog.title"));
+
+        result.set(null);
+        dialog.showAndWait();
     }
 
     @FXML
