@@ -43,7 +43,7 @@
         <queueSize>1000</queueSize>
     </appender>
 
-    <root level="WARN">
+    <root level="INFO">
         <appender-ref ref="ASYNC-FILE" />
         <appender-ref ref="ASYNC-STDOUT" />
     </root>

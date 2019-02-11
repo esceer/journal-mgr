@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.PrettyPrinter;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
@@ -45,11 +46,13 @@ public final class JsonConverter {
         OBJECT_MAPPER.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
         OBJECT_MAPPER.setVisibility(PropertyAccessor.CREATOR, JsonAutoDetect.Visibility.PUBLIC_ONLY);
         OBJECT_MAPPER.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+        PrettyPrinter prettyPrinter = new CustomMinimalPrettyPrinter();
+        OBJECT_MAPPER.setDefaultPrettyPrinter(prettyPrinter);
     }
 
     public static <T> void writeValue(OutputStream outputStream, T object) {
         processAndWrapCheckedException(() -> {
-            OBJECT_MAPPER.writeValue(outputStream, object);
+            OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValue(outputStream, object);
             return null;
         });
     }

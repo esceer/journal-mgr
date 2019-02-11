@@ -7,6 +7,9 @@ import javafx.beans.property.SimpleStringProperty;
 import java.time.LocalDate;
 import java.util.Objects;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+
 public class Journal implements Comparable<Journal> {
 
     private SimpleObjectProperty<LocalDate> date;
@@ -119,14 +122,14 @@ public class Journal implements Comparable<Journal> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Journal journal = (Journal) o;
-        return Objects.equals(date, journal.date) &&
-                Objects.equals(paymentType, journal.paymentType) &&
-                Objects.equals(paymentDirection, journal.paymentDirection) &&
-                Objects.equals(invoiceNumber, journal.invoiceNumber) &&
-                Objects.equals(comment, journal.comment) &&
-                Objects.equals(address, journal.address) &&
-                Objects.equals(amount, journal.amount) &&
-                Objects.equals(expenseType, journal.expenseType);
+        return equals(date, journal.date) &&
+                equals(paymentType, journal.paymentType) &&
+                equals(paymentDirection, journal.paymentDirection) &&
+                equals(invoiceNumber, journal.invoiceNumber) &&
+                equals(comment, journal.comment) &&
+                equals(address, journal.address) &&
+                equals(amount, journal.amount) &&
+                equals(expenseType, journal.expenseType);
     }
 
     @Override
@@ -151,5 +154,29 @@ public class Journal implements Comparable<Journal> {
     @Override
     public int compareTo(Journal o) {
         return o.getDate().compareTo(getDate());
+    }
+
+    private static boolean equals(SimpleObjectProperty<?> a, SimpleObjectProperty<?> b) {
+        if (nonNull(a) && nonNull(b)) {
+            return Objects.equals(a.get(), b.get());
+        } else {
+            return isNull(a) && isNull(b);
+        }
+    }
+
+    private static boolean equals(SimpleStringProperty a, SimpleStringProperty b) {
+        if (nonNull(a) && nonNull(b)) {
+            return Objects.equals(a.get(), b.get());
+        } else {
+            return isNull(a) && isNull(b);
+        }
+    }
+
+    private static boolean equals(SimpleLongProperty a, SimpleLongProperty b) {
+        if (nonNull(a) && nonNull(b)) {
+            return Objects.equals(a.get(), b.get());
+        } else {
+            return isNull(a) && isNull(b);
+        }
     }
 }

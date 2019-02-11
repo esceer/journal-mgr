@@ -4,12 +4,16 @@ import com.scr.journal.dao.DataLoader;
 import com.scr.journal.dao.DataPersister;
 import com.scr.journal.model.Journal;
 import com.scr.journal.model.Journals;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Year;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class JournalRegistry {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JournalRegistry.class);
 
     private final DataPersister<Journals> journalPersister;
     private final DataLoader<Journals> backupLoader;
@@ -50,8 +54,12 @@ public class JournalRegistry {
     }
 
     public void add(Collection<Journal> journalsToAdd) {
+        if (journalsToAdd.stream().anyMatch(journals::contains)) {
+            throw new IllegalArgumentException("Journals must be unique!");
+        }
         for (Journal journal : journalsToAdd) {
             journals.add(journal);
+            LOGGER.info("Added journal: {}", journal);
         }
         sort();
         persist();
@@ -60,17 +68,19 @@ public class JournalRegistry {
     public void remove(Journal journal) {
         journals.remove(journal);
         persist();
+        LOGGER.info("Removed journal: {}", journal);
     }
 
     public void replace(Journal oldJournal, Journal newJournal) {
-        journals.remove(oldJournal);
         add(newJournal);
+        remove(oldJournal);
     }
 
     public void resetToBackup() {
         // Todo: Implement backup handling on a year-basis
         setJournals(backupLoader.load());
         persist();
+        LOGGER.info("Restored journals");
     }
 
     private void sort() {
